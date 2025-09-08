@@ -15,7 +15,7 @@ const projects = [
     impact: "",
     github: "https://github.com/ryaaan4321/lastdraft",
     demo: "https://last-draft.vercel.app/",
-    tech: ["Next Js", "TypeScript", "Prisma", "TailwindCss", "Shadcn", "Cloudinary"]
+    tech: ["Open AI","Generative Ai","Next Js", "TypeScript", "Prisma", "TailwindCss", "Shadcn", "Cloudinary"]
   },
   {
     title: "Dictionary",
