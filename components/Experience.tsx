@@ -1,6 +1,6 @@
 const experiences = [
     {
-        title: "Junior Developer",
+        title: "Junior Software Developer",
         company: "Digipants",
         period: "2024 Aug - Present",
         description:
