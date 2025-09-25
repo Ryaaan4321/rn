@@ -3,7 +3,7 @@ import { TbBrandLeetcode } from "react-icons/tb";
 
 export function Footer() {
   return (
-    <footer className=" py-12 px-8 border-t dark:bg-stone-900">
+    <footer className=" py-12 px-8 border-t dark:bg-black">
       <div className="max-w-5xl mx-auto">
         <div className="flex justify-center gap-12 mb-4">
           <a
