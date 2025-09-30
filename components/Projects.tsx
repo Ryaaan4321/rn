@@ -33,7 +33,7 @@ export function ProjectsSection() {
     <section className="min-h-screen  px-8 dark:bg-black">
       <div className="max-w-5xl mx-auto">
         <div className="mb-20">
-          <h2 className="text-8xl font-extralight text-black tracking-tight text-left dark:text-stone-300">Projects</h2>
+          <h2 className="text-4xl sm:text-8xl font-extralight text-black tracking-tight text-left dark:text-stone-300">Projects</h2>
           <div className="w-75 h-px bg-black mt-8 dark:bg-stone-300 "></div>
         </div>
 
