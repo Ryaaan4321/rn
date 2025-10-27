@@ -20,8 +20,6 @@ export default function Portfolio() {
                     </Link>
                     </div>
             </div>
-
-
             <section className=" dark:bg-black w-full">
                 <div className="max-w-3xl mx-auto px-8 py-24 text-center">
                     <h1 className="text-6xl font-light text-stone-900 dark:text-stone-100 mb-8 leading-tight">
