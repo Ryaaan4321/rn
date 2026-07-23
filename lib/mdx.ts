@@ -1,7 +1,8 @@
 import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
-import { serialize } from "next-mdx-remote/serialize";
+import { compileMDX } from "next-mdx-remote/rsc";
+import remarkGfm from "remark-gfm";
 
 const postsDirectory = path.join(process.cwd(), "content/posts");
 
@@ -23,7 +24,6 @@ function calculateReadingTime(content: string): string {
 
 export function getAllPosts(): Post[] {
   const fileNames = fs.readdirSync(postsDirectory);
-
   const posts = fileNames
     .filter((fileName) => fileName.endsWith(".mdx"))
     .map((fileName) => {
@@ -31,7 +31,6 @@ export function getAllPosts(): Post[] {
       const fullPath = path.join(postsDirectory, fileName);
       const fileContents = fs.readFileSync(fullPath, "utf8");
       const { data, content } = matter(fileContents);
-
       return {
         slug,
         title: data.title || "Untitled",
@@ -43,7 +42,6 @@ export function getAllPosts(): Post[] {
       };
     })
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
   return posts;
 }
 
@@ -52,7 +50,6 @@ export function getPostBySlug(slug: string): Post | null {
     const fullPath = path.join(postsDirectory, `${slug}.mdx`);
     const fileContents = fs.readFileSync(fullPath, "utf8");
     const { data, content } = matter(fileContents);
-
     return {
       slug,
       title: data.title || "Untitled",
@@ -67,11 +64,18 @@ export function getPostBySlug(slug: string): Post | null {
   }
 }
 
-export async function serializePost(content: string) {
-  return serialize(content, {
-    mdxOptions: {
-      remarkPlugins: [],
-      rehypePlugins: [],
+export async function compilePost(
+  content: string,
+  components: Record<string, React.ComponentType<any>>
+) {
+  const { content: compiledContent } = await compileMDX({
+    source: content,
+    components,
+    options: {
+      mdxOptions: {
+        remarkPlugins: [remarkGfm],
+      },
     },
   });
+  return compiledContent;
 }

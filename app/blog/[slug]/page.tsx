@@ -1,10 +1,9 @@
 import { notFound } from "next/navigation";
-import { getPostBySlug, getAllPosts } from "@/lib/mdx";
-import { MDXRemote } from "next-mdx-remote/rsc";
+import { getPostBySlug, getAllPosts, compilePost } from "@/lib/mdx";
 import Link from "next/link";
 import { CalendarIcon, ArrowLeftIcon, ClockIcon } from "@/components/Icons";
 import Footer from "@/components/Footer";
-
+import type { ReactNode } from "react";
 const mdxComponents = {
   img: ({ src, alt, ...props }: { src?: string; alt?: string }) => {
     if (!src) return null;
@@ -25,22 +24,22 @@ const mdxComponents = {
       </figure>
     );
   },
-  h2: ({ children }: { children: React.ReactNode }) => (
+  h2: ({ children }: { children: ReactNode }) => (
     <h2 className="text-lg font-medium text-[#F2F2F2] tracking-[-0.15px] mt-10 mb-4">
       {children}
     </h2>
   ),
-  h3: ({ children }: { children: React.ReactNode }) => (
+  h3: ({ children }: { children: ReactNode }) => (
     <h3 className="text-base font-medium text-[#F2F2F2] tracking-[-0.15px] mt-8 mb-3">
       {children}
     </h3>
   ),
-  p: ({ children }: { children: React.ReactNode }) => (
+  p: ({ children }: { children: ReactNode }) => (
     <p className="text-sm text-[#A8A8A8] tracking-[-0.15px] leading-[1.8] mb-5">
       {children}
     </p>
   ),
-  a: ({ href, children }: { href?: string; children: React.ReactNode }) => (
+  a: ({ href, children }: { href?: string; children: ReactNode }) => (
     <a
       href={href}
       className="text-[#A8A8A8] hover:text-[#F2F2F2] transition-colors duration-200 border-b border-[#444] hover:border-[#888]"
@@ -48,32 +47,58 @@ const mdxComponents = {
       {children}
     </a>
   ),
-  code: ({ children }: { children: React.ReactNode }) => (
+  code: ({ children }: { children: ReactNode }) => (
     <code className="text-xs font-mono text-[#A8A8A8] bg-[#141414] border border-[#1f1f1f] px-1.5 py-0.5">
       {children}
     </code>
   ),
-  pre: ({ children }: { children: React.ReactNode }) => (
+  pre: ({ children }: { children: ReactNode }) => (
     <pre className="bg-[#141414] border border-[#1f1f1f] p-4 overflow-x-auto my-6 -mx-6 md:mx-0">
       {children}
     </pre>
   ),
-  ul: ({ children }: { children: React.ReactNode }) => (
+  ul: ({ children }: { children: ReactNode }) => (
     <ul className="list-disc list-inside text-sm text-[#A8A8A8] tracking-[-0.15px] leading-[1.8] mb-5 space-y-1">
       {children}
     </ul>
   ),
-  ol: ({ children }: { children: React.ReactNode }) => (
+  ol: ({ children }: { children: ReactNode }) => (
     <ol className="list-decimal list-inside text-sm text-[#A8A8A8] tracking-[-0.15px] leading-[1.8] mb-5 space-y-1">
       {children}
     </ol>
   ),
-  blockquote: ({ children }: { children: React.ReactNode }) => (
+  blockquote: ({ children }: { children: ReactNode }) => (
     <blockquote className="border-l-2 border-[#444] pl-4 my-6 text-sm text-[#6E6E6E] italic tracking-[-0.15px] leading-[1.8]">
       {children}
     </blockquote>
   ),
   hr: () => <hr className="border-[#1f1f1f] my-8" />,
+  table: ({ children }: { children: ReactNode }) => (
+    <div className="overflow-x-auto my-6 -mx-6 md:mx-0">
+      <table className="w-full text-sm text-[#A8A8A8] tracking-[-0.15px] border border-[#1f1f1f]">
+        {children}
+      </table>
+    </div>
+  ),
+  thead: ({ children }: { children: ReactNode }) => (
+    <thead className="bg-[#141414]">{children}</thead>
+  ),
+  th: ({ children }: { children: ReactNode }) => (
+    <th className="text-left text-xs text-[#F2F2F2] font-medium tracking-[-0.15px] px-4 py-3 border-b border-[#1f1f1f]">
+      {children}
+    </th>
+  ),
+  td: ({ children }: { children: ReactNode }) => (
+    <td className="px-4 py-3 border-b border-[#1f1f1f] text-[#A8A8A8]">
+      {children}
+    </td>
+  ),
+  tr: ({ children }: { children: ReactNode }) => (
+    <tr className="hover:bg-[#141414]/50 transition-colors">{children}</tr>
+  ),
+  tbody: ({ children }: { children: ReactNode }) => (
+    <tbody>{children}</tbody>
+  ),
 };
 
 export async function generateStaticParams() {
@@ -100,6 +125,7 @@ export default async function BlogPostPage({
   const { slug } = await params;
   const post = getPostBySlug(slug);
   if (!post) return notFound();
+  const compiledContent = await compilePost(post.content, mdxComponents);
 
   return (
     <div className="min-h-screen bg-[#0c0c0c]">
@@ -131,9 +157,7 @@ export default async function BlogPostPage({
             {post.title}
           </h1>
 
-          <div className="max-w-none">
-            <MDXRemote source={post.content} components={mdxComponents} />
-          </div>
+          <div className="max-w-none">{compiledContent}</div>
         </article>
       </main>
 
