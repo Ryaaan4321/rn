@@ -1,67 +1,103 @@
 ---
-title: "Building a Rate Limiter from Scratch"
-date: "2025-06-28"
-tag: "architecture"
-excerpt: "Token bucket vs sliding window. When Redis is overkill and when it's not. A practical breakdown."
+title: "Building Rate Limiters from Scratch: What I Learned About Latency"
+date: "2026-07-10"
+tag: "backend"
+excerpt: "From 429s to 96% latency drops. Building rate limiters taught me more about round trips, Redis atomicity, and infrastructure than I expected."
 ---
 
+For the last few weeks, I have been trying to build rate limiters by myself. When I started, I had one goal — to learn how a request returns 429 from the server.
 
-Rate limiting sounds simple until you need it to work at scale.
+Even though I still have multiple types of rate limiters left to build, I have learned so much along the way — how round trip calls affect latency, how atomicity in Redis helps prevent race conditions, and a bunch of other things.
 
-## Token Bucket vs Sliding Window
+## The Architecture
 
-| Algorithm | Memory | Accuracy | Use Case |
-|-----------|--------|----------|----------|
-| Token Bucket | Low | Approximate | Most APIs |
-| Sliding Window | High | Exact | Billing, strict limits |
-| Fixed Window | Lowest | Poor | Never use this |
+For today's design, my architecture was straightforward:
 
-## In-Memory Implementation
+![Rate limiter architecture diagram](/images/arch-1.png)
 
-```typescript
-class TokenBucket {
-  private tokens: number;
-  private lastRefill: number;
+Before the request hits the actual server, it hits the rate limiter. The rate limiter pulls the latest data on the number of requests the server got in the last minute, and how many are still left.
 
-  constructor(
-    private capacity: number,
-    private refillRate: number // tokens per second
-  ) {
-    this.tokens = capacity;
-    this.lastRefill = Date.now();
-  }
+If we've hit more requests than we defined, the rate limiter returns 429. Otherwise, it returns 200.
 
-  consume(tokens = 1): boolean {
-    this.refill();
-    if (this.tokens >= tokens) {
-      this.tokens -= tokens;
-      return true;
-    }
-    return false;
-  }
+Simple on paper.
 
-  private refill() {
-    const now = Date.now();
-    const elapsed = (now - this.lastRefill) / 1000;
-    this.tokens = Math.min(
-      this.capacity,
-      this.tokens + elapsed * this.refillRate
-    );
-    this.lastRefill = now;
-  }
-}
-```
+## The Problem
 
-## When to Use Redis
+But I found something really interesting while building this.
 
-- Multiple server instances
-- Need persistence across restarts
-- Distributed rate limiting
+When I used a Redis instance from Upstash, the latency was painfully slow. But when I spun up a Redis instance on my own system, the latency dropped by 96%.
 
-## When Not To
+These numbers are real.
 
-- Single server
-- Development/testing
-- Low-traffic APIs
+## Why This Happened
 
-Simple in-memory rate limiting handles 90% of cases. Don't over-engineer.
+Here's what I think is going on:
+
+| Factor | Upstash (Remote) | Local Redis |
+|--------|-----------------|-------------|
+| **Network RTT** | ~20-50ms per call | ~0.1ms (localhost) |
+| **TCP handshake** | Full TLS + TCP | Unix socket / loopback |
+| **Geographic distance** | Region-dependent | Same machine |
+| **Connection pooling** | Limited by provider | Under my control |
+
+Every `INCR`, `EXPIRE`, or `ZADD` in my rate limiter was a round trip. With multiple Redis calls per request, those milliseconds stacked up fast.
+
+Local Redis skips the network entirely. The kernel routes the packet through `lo0` — no NIC, no router, no ISP.
+
+## What I Learned
+
+**Round trips are expensive.** Even 20ms adds up when you're making 3-4 Redis calls per request.
+
+**Atomicity matters.** Using Lua scripts (`EVAL`) bundles multiple operations into one round trip. This is why my sliding window log uses a single Lua script instead of separate `ZREMRANGEBYSCORE` + `ZCARD` + `ZADD` calls.
+
+**Infrastructure is part of the design.** The same code performs completely differently depending on where Redis lives.
+
+**Measure everything.** I wouldn't have noticed the 96% difference if I wasn't logging latency per request.
+
+## The Numbers
+
+This is where it gets interesting. I ran the same load test against both setups.
+
+### Local Redis — p50 Latency
+
+![Local Redis p50 latency](/images/p-50.png)
+
+p50 at 3ms. Most requests finish before you blink.
+
+### Upstash Redis — p50 Latency
+
+![Upstash Redis p50 latency](/images/p-50.png)
+
+p50 at 71ms. Same code, same load, 24x slower at the median.
+
+### The Full Picture
+
+| Metric | Upstash Redis | Local Redis | Improvement |
+|--------|--------------|-------------|-------------|
+| **p50 latency** | 71 ms | 3 ms | 96% faster |
+| **p90 latency** | 354 ms | 9 ms | 97% faster |
+| **p99 latency** | 728 ms | 19 ms | 97% faster |
+| **p99.9 latency** | 796 ms | 26 ms | 97% faster |
+
+### Autocannon Load Test — Local Redis
+
+![Autocannon load test local](/images/ac-1.png)
+
+152k requests in 60 seconds. 600 allowed through, 149,982 rejected with 429. The rate limiter was doing its job.
+
+### Redis Under Load
+
+![Redis stats under load](/images/p-90.png)
+
+Redis handling the throughput without breaking a sweat. Memory stable, connections flat.
+
+## What's Next
+
+I'm still building:
+- Token bucket with Redis Cell
+- Sliding window counter (approximate, less memory)
+- Distributed rate limiting with Redis Cluster (hope we dig into this one also)
+
+And I genuinely want to hear from people who know why this happened and how — is it just network RTT, or is there something deeper in how managed Redis handles connections?
+
+If you know, tell me.
