@@ -15,6 +15,7 @@ export async function getAccessToken() {
         })
     })
     const data = await res.json();
+    console.log("data == ", data);
     if (!res.ok) {
         throw new Error(JSON.stringify(data));
     }
@@ -22,7 +23,7 @@ export async function getAccessToken() {
 }
 export async function getNowPlaying() {
     const access_token = await getAccessToken();
-    console.log("acess token = ",access_token);
+    console.log("acess token = ", access_token);
     const res = await fetch("https://api.spotify.com/v1/me/player/currently-playing", {
         headers: {
             Authorization: `Bearer ${access_token}`
@@ -35,7 +36,7 @@ export async function getNowPlaying() {
     return {
         playing: data.is_playing,
         song: data.item.album.name,
-        artists: data.item.artists.map((a:any) => a.name).join(", "),
+        artists: data.item.artists.map((a: any) => a.name).join(", "),
         album: data.item.album.name,
         albumArt: data.item.album.images[0].url,
         spotifyUrl: data.item.external_urls.spotify,
