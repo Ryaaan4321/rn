@@ -35,7 +35,7 @@ export default function Header() {
     { id: "/", label: "Home" },
     { id: "/#experience", label: "Work" },
     { id: "/#projects", label: "Projects" },
-    { id: "/#blog", label: "Blog" },
+    { id: "/blog", label: "Blog" },
   ];
 
   const isActive = (id: string) => {
@@ -61,8 +61,8 @@ export default function Header() {
                 key={item.id}
                 href={item.id}
                 className={`text-[13px] tracking-[-0.15px] pb-1 border-b transition-all duration-200 ${active
-                    ? "text-[#F2F2F2] border-[#F2F2F2]"
-                    : "text-[#6E6E6E] border-transparent hover:text-[#A8A8A8] hover:border-[#444]"
+                  ? "text-[#F2F2F2] border-[#F2F2F2]"
+                  : "text-[#6E6E6E] border-transparent hover:text-[#A8A8A8] hover:border-[#444]"
                   }`}
               >
                 {item.label}
@@ -105,8 +105,8 @@ export default function Header() {
                 href={item.id}
                 onClick={() => setMenuOpen(false)}
                 className={`text-[13px] tracking-[-0.15px] py-2.5 px-3 transition-colors ${active
-                    ? "text-[#F2F2F2] bg-[#141414]"
-                    : "text-[#6E6E6E] hover:text-[#A8A8A8] hover:bg-[#141414]/50"
+                  ? "text-[#F2F2F2] bg-[#141414]"
+                  : "text-[#6E6E6E] hover:text-[#A8A8A8] hover:bg-[#141414]/50"
                   }`}
               >
                 {item.label}
