@@ -1,74 +1,75 @@
-const experiences = [
+"use client";
+
+import React from "react";
+import SectionHeader from "./SectionHeader";
+import { BriefcaseIcon, CodeIcon } from "./Icons";
+import TechTag from "./TechTag";
+
+interface ExperienceItem {
+  role: string;
+  company: string;
+  date: string;
+  description: string;
+  skills: string[];
+}
+
+const experiences: ExperienceItem[] = [
   {
-    title: "Junior Software Developer",
+    role: "Junior Software Developer",
     company: "Digipants",
-    period: "2024 Aug - Present",
+    date: "Aug 2024 — Present",
     description:
       "Developed responsive web applications using React and TypeScript. Collaborated with senior developers to implement new features and optimize existing codebase. Participated in code reviews and contributed to improving development workflows.",
-    skills: ["NextJs", "React", "TypeScript", "Code Reviews", "MongoDb", "Javascript"],
+    skills: ["Next.js", "React", "TypeScript", "Code Reviews", "MongoDB", "JavaScript"],
   },
   {
-    title: "Software Development Intern",
+    role: "Software Development Intern",
     company: "Innayra Tech Pvt Ltd.",
-    period: "Winter 2023",
+    date: "Winter 2023",
     description:
       "Assisted in building mobile-first web applications and learned modern development practices. Worked closely with the design team to implement pixel-perfect UI components and gained experience with version control and agile development methodologies.",
-    skills: ["Javacript", "PostgreSql", "Agile", "SDLC"],
+    skills: ["JavaScript", "PostgreSQL", "Agile", "SDLC"],
   },
 ];
-
-export function ExperienceSection() {
+function ExpCard({ item }: { item: ExperienceItem }) {
   return (
-    <section className="min-h-screen py-8 px-4 sm:px-8 dark:bg-black">
-      <div className="max-w-5xl mx-auto">
-        <div className="mb-12 sm:mb-20">
-          <h2 className="text-4xl sm:text-8xl font-extralight text-black tracking-tight text-left dark:text-stone-300">
-            Experience
-          </h2>
-          <div className="w-full h-px bg-black mt-3 sm:mt-5 dark:bg-stone-300"></div>
-        </div>
+    <div className="relative p-5 sm:p-6 border border-[#1f1f1f] bg-[#141414] transition-all duration-300 hover:border-[#2a2a2a] group">
+      <div className="absolute left-0 top-4 bottom-4 w-0.5 bg-[#444] scale-y-0 origin-top transition-transform duration-300 group-hover:scale-y-100" />
 
-        <div className="space-y-8 sm:space-y-12">
-          {experiences.map((exp, index) => (
-            <div key={index} className="relative">
-              <div className="absolute left-2 sm:left-0 top-0 w-px h-full bg-gray-200 dark:bg-stone-300"></div>
+      <div className="flex justify-between items-start sm:items-baseline mb-3 flex-col sm:flex-row gap-1.5">
+        <span className="text-sm font-medium text-[#F2F2F2] tracking-[-0.15px] flex items-center gap-2">
+          <CodeIcon size={14} className="text-[#6E6E6E] flex-shrink-0" />
+          {item.role}
+        </span>
+        <span className="text-xs text-[#6E6E6E] tracking-[-0.15px] bg-[#0c0c0c] px-2.5 py-0.5 border border-[#1f1f1f] self-start sm:self-auto">
+          {item.date}
+        </span>
+      </div>
 
-              <div className="pl-6 sm:pl-12">
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4 sm:mb-6">
-                  <div className="flex flex-col sm:flex-row sm:gap-3">
-                    <p className="text-xl  text-left sm:text-4xl font-semibold text-black dark:text-stone-300">
-                      {exp.title}
-                    </p>
-                    <p className="text-lg text-left sm:text-3xl text-gray-600 font-light dark:text-stone-300">
-                      {exp.company}
-                    </p>
-                  </div>
-                  <div className="text-left sm:text-right mt-2 sm:mt-0">
-                    <span className="text-xs sm:text-sm font-mono text-gray-400 uppercase tracking-widest dark:text-stone-300">
-                      {exp.period}
-                    </span>
-                  </div>
-                </div>
-                <p className="text-sm leading-relaxed text-left sm:text-base text-gray-700 font-light mb-4 sm:mb-6 dark:text-stone-300">
-                  {exp.description}
-                </p>
-                <div className="flex flex-wrap gap-2 sm:gap-3 dark:text-stone-300">
-                  {exp.skills.map((skill, skillIndex) => (
-                    <span
-                      key={skillIndex}
-                      className="text-xs sm:text-sm font-mono text-black border-b border-gray-300 pb-0.5 dark:text-stone-300"
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="mt-12 sm:mt-20">
-          <div className="w-24 sm:w-32 h-px bg-gray-300"></div>
-        </div>
+      <div className="text-xs text-[#A8A8A8] tracking-[-0.15px] mb-4 flex items-center gap-1.5">
+        <span className="text-[#6E6E6E]">@</span>
+        {item.company}
+      </div>
+
+      <p className="text-sm text-[#A8A8A8] leading-[1.8] tracking-[-0.15px] mb-5">{item.description}</p>
+
+      <div className="flex flex-wrap gap-2">
+        {item.skills.map((skill) => (
+          <TechTag key={skill} name={skill} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function Experience() {
+  return (
+    <section id="experience" className="w-full space-y-4">
+      <SectionHeader icon={<BriefcaseIcon size={20} />} title="Experience" />
+      <div className="flex flex-col gap-4">
+        {experiences.map((item, i) => (
+          <ExpCard key={i} item={item} />
+        ))}
       </div>
     </section>
   );

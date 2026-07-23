@@ -4,8 +4,8 @@ import { useEffect } from "react";
 export default function Booking() {
   useEffect(() => {
     (async function () {
-      const cal = await getCalApi({"namespace":"15min"});
-      cal("ui", {"hideEventTypeDetails":false,"layout":"month_view"});
+      const cal = await getCalApi({ "namespace": "15min" });
+      cal("ui", { "hideEventTypeDetails": false, "layout": "month_view" });
     })();
   }, [])
   return (

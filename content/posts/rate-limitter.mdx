@@ -1,0 +1,68 @@
+---
+title: "Building a Rate Limiter from Scratch"
+date: "2025-06-28"
+tag: "architecture"
+excerpt: "Token bucket vs sliding window. When Redis is overkill and when it's not. A practical breakdown."
+---
+
+# Building a Rate Limiter from Scratch
+
+Rate limiting sounds simple until you need it to work at scale.
+
+## Token Bucket vs Sliding Window
+
+| Algorithm | Memory | Accuracy | Use Case |
+|-----------|--------|----------|----------|
+| Token Bucket | Low | Approximate | Most APIs |
+| Sliding Window | High | Exact | Billing, strict limits |
+| Fixed Window | Lowest | Poor | Never use this |
+
+## In-Memory Implementation
+
+```typescript
+class TokenBucket {
+  private tokens: number;
+  private lastRefill: number;
+
+  constructor(
+    private capacity: number,
+    private refillRate: number // tokens per second
+  ) {
+    this.tokens = capacity;
+    this.lastRefill = Date.now();
+  }
+
+  consume(tokens = 1): boolean {
+    this.refill();
+    if (this.tokens >= tokens) {
+      this.tokens -= tokens;
+      return true;
+    }
+    return false;
+  }
+
+  private refill() {
+    const now = Date.now();
+    const elapsed = (now - this.lastRefill) / 1000;
+    this.tokens = Math.min(
+      this.capacity,
+      this.tokens + elapsed * this.refillRate
+    );
+    this.lastRefill = now;
+  }
+}
+```
+
+## When to Use Redis
+
+- Multiple server instances
+- Need persistence across restarts
+- Distributed rate limiting
+
+## When Not To
+
+- Single server
+- Development/testing
+- Low-traffic APIs
+
+Simple in-memory rate limiting handles 90% of cases. Don't over-engineer.

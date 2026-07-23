@@ -1,0 +1,46 @@
+---
+title: "PostgreSQL Indexing Strategies That Actually Work"
+date: "2025-05-10"
+tag: "databases"
+excerpt: "B-tree, GIN, GiST, BRIN — knowing when to use each can save you hours of query optimization."
+---
+
+# PostgreSQL Indexing Strategies That Actually Work
+
+Indexes are not magic. They're trade-offs.
+
+## B-tree (The Default)
+
+```sql
+CREATE INDEX idx_users_email ON users(email);
+```
+
+Use for: equality, range queries, sorting. The default for a reason.
+
+## GIN (Generalized Inverted Index)
+
+```sql
+CREATE INDEX idx_posts_search ON posts USING GIN(search_vector);
+```
+
+Use for: full-text search, JSONB, arrays. Slower writes, fast reads.
+
+## GiST (Generalized Search Tree)
+
+```sql
+CREATE INDEX idx_locations ON locations USING GiST(point);
+```
+
+Use for: geometric data, nearest-neighbor queries.
+
+## BRIN (Block Range Index)
+
+```sql
+CREATE INDEX idx_logs_time ON logs USING BRIN(created_at);
+```
+
+Use for: large, naturally ordered tables (logs, events). Tiny size, approximate.
+
+## The Rule
+
+Measure first. `EXPLAIN ANALYZE` before you index. An unnecessary index is worse than no index.
