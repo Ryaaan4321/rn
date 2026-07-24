@@ -132,7 +132,7 @@ export default async function BlogPostPage({
       <main className="flex justify-center">
         <article className="w-full max-w-[640px] px-6 md:px-10 pt-24 pb-24">
           <Link
-            href="/"
+            href="/blog"
             className="inline-flex items-center gap-1.5 text-xs text-[#6E6E6E] hover:text-[#F2F2F2] transition-colors mb-10 tracking-[-0.15px]"
           >
             <ArrowLeftIcon size={14} />

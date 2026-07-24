@@ -15,11 +15,19 @@ interface ExperienceItem {
 
 const experiences: ExperienceItem[] = [
   {
+    role: "Frontend Developer",
+    company: "Deckit Ai",
+    date: "Dec 2025 - Present",
+    description:
+      "Working on an AI-powered PPT generation platform. Built out the authorization system and integrated Google Auth for login. Integrated PostHog for product analytics and led multiple UI overhauls across the app. Merged 20+ PRs into production.",
+    skills: ["Next Js", "React Js", "TypeScript", "PostgreSQL"],
+  },
+  {
     role: "Junior Software Developer",
     company: "Digipants",
-    date: "Aug 2024 — Present",
+    date: "Aug 2024 — Nov 2025",
     description:
-      "Developed responsive web applications using React and TypeScript. Collaborated with senior developers to implement new features and optimize existing codebase. Participated in code reviews and contributed to improving development workflows.",
+      "Built core modules of a hotel management platform in React and TypeScript, including booking and room-management flows. Worked directly with senior engineers on architecture decisions and drove measurable efficiency improvements in the existing codebase through refactors and MongoDB query optimization.",
     skills: ["Next.js", "React", "TypeScript", "Code Reviews", "MongoDB", "JavaScript"],
   },
   {
@@ -27,7 +35,7 @@ const experiences: ExperienceItem[] = [
     company: "Innayra Tech Pvt Ltd.",
     date: "Winter 2023",
     description:
-      "Assisted in building mobile-first web applications and learned modern development practices. Worked closely with the design team to implement pixel-perfect UI components and gained experience with version control and agile development methodologies.",
+      "Built mobile-first UI components for a client web application, translating Figma designs into pixel-accurate, responsive layouts. Picked up Git-based version control and agile sprint workflows in a real team setting.",
     skills: ["JavaScript", "PostgreSQL", "Agile", "SDLC"],
   },
 ];
