@@ -21,19 +21,20 @@ Why move beyond fixed window counter? The cons were real.
 
 Suppose we define `max_requests = 60` in a 60-second window. A person hits 60 requests at the 59th second, then 60 more in the next 3 seconds. In a 4-second interval, we processed 120 requests — double the limit.
 
-The fixed window counter has no memory of *when* inside the window those requests arrived. It just resets.
+The fixed window counter has no memory of *when* inside the window those requests arrived. It just resets the count to zero the moment a new window starts, no matter how bunched up the previous window's traffic was near the boundary. That boundary is the entire weak point — everything else about fixed window is fine.
 
 ## How It Works
 
-In the sliding window log, instead of having a count to compare the number of requests, we put the **timestamp of each request** in some sort of data structure.
+In the sliding window log, instead of having a single count to compare, we store the **timestamp of each request** in a data structure — here, a Redis sorted set (`ZSET`), where the score is the timestamp itself.
 
-Each time:
-1. We remove the entries that are older than the window
-2. We count what's left
-3. If the remaining amount of requests is less than the ceiling we defined, we let the request pass through
-4. Otherwise, we deny and calculate the time it will take for the key to be on duty again
+Each time a request comes in:
 
-Attaching the Lua script that is used to make it happen.
+1. Remove entries older than the window (they're irrelevant now — the window has "slid" past them)
+2. Count what's left
+3. If the remaining count is under the limit we defined, let the request through and log its timestamp
+4. Otherwise, deny it and calculate how long until the oldest entry expires out of the window, so the client knows when to retry
+
+Because we're tracking exact timestamps instead of a bucket count, there's no boundary to exploit. The window is always exactly "now minus 60 seconds," recalculated on every single request. That's what makes this the most *precise* algorithm on the list.
 
 ## The Lua Script
 
@@ -65,4 +66,33 @@ end
 
 return { 0, 0, retry_after_ms }
 ```
-We will talk about what the Lua script does, why it matters, and other Redis internals very soon.
+
+## Why This *Has* to Be a Lua Script
+
+It would be tempting to write this as four separate calls from Node — `ZREMRANGEBYSCORE`, then `ZCARD`, then check the count in JS, then `ZADD`. It would even work most of the time. It would also be wrong.
+
+Redis is single-threaded for command execution, but your Node process isn't the only client hitting it. If two requests from the same user arrive close together, both can run `ZCARD` and both can read `count = 59` (one under the limit) *before either of them* runs `ZADD`. Both get admitted. You just let 61 requests through a 60-request limit — a classic check-then-act race condition.
+
+The fix is to make "check, then act" a single atomic unit. A Lua script sent to Redis runs as one atomic block — no other command interleaves in the middle of it, because Redis executes the whole script before doing anything else. That's the entire reason this is a Lua script instead of four round trips from application code. It's not a style choice, it's the correctness mechanism.
+
+## The Actual Trade-off (This Is the Part That Matters)
+
+Sliding window log is the most *accurate* algorithm in this list, but accuracy isn't free.
+
+Fixed window counter stores **one integer per key**. Sliding window log stores **one entry per request, per key**, inside the window. If your limit is 1,000 requests per minute per user, a busy user's sorted set can genuinely have up to 1,000 members in it at any moment. Multiply that across thousands of active users and this is real, unbounded-ish memory pressure — unbounded in the sense that it scales with traffic volume, not with a fixed constant like the counter does.
+
+There's a time cost too: `ZREMRANGEBYSCORE` and `ZADD` on a sorted set are `O(log n)`, not `O(1)`. Under very high request rates per key, that log-n factor is measurable.
+
+This is exactly why **sliding window counter** exists — it's a compromise that approximates this precision using a weighted average of two fixed windows, at `O(1)` space and time. I'll get into that next.
+
+## Where You'd Actually Use This
+
+You don't reach for sliding window log everywhere — the memory cost isn't worth it for something like "limit homepage views." You reach for it when the *precision* itself is the point:
+
+- **Login attempt limiting** — letting a burst of 2x attempts slip through a boundary is a real security hole, not just an inconvenience
+- **Payment/checkout APIs** — a burst that doubles your allowed request rate can mean real financial abuse, not just noisy logs
+- **Any endpoint where "slightly over the limit" has a cost attached to it**, rather than just being mildly annoying
+
+For everything else, the cheaper approximate algorithms are the better trade.
+
+Next up: sliding window counter — how it gets *most* of this precision for a fraction of the memory.
