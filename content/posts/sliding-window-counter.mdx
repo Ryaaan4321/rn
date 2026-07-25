@@ -1,0 +1,83 @@
+---
+title: "Rate Limiting Deep Dive: The Sliding Window Counter Algorithm"
+description: "How the Sliding Window Counter fixes the memory problem of Sliding Window Log and the burst problem of Fixed Window Counter — with the math explained step by step."
+date: "2026-07-25"
+tags: ["rate-limiting","system-design", "redis",]
+---
+
+
+In my last post we talked about the Sliding Window Log that was resolving the burst hits problem on the edge of the fixed window counter. But sliding window log does come with the cost of memory. Imagine your API has 10K users and each user has a cap of 1K requests — that's potentially 10 million request timestamps stored in Redis at once, and it does affect the memory of our Redis server.
+
+To overcome this we have our saviour: the **Sliding Window Counter**.
+
+---
+
+## Quick Recap of Fixed Window Counter's cons before moving Further
+
+I've already talked about the fixed window counter cons, but to brush it up — suppose we have defined a cap of 100 req/min and the window resets exactly after 60 sec (for ease, `09:00:00`), so the next reset will be at `09:01:00`.
+
+Now suppose the user sends 100 req at `09:00:58` and another 100 req at `09:01:02`. That's 400 requests in an interval of 4 seconds — this is also called the **window burst problem**.
+
+It's cheap on memory, but comes with the window burst problem, and that can't be tolerated when building something like a payment gateway, or anywhere a strict rate limiting cap is needed.
+
+---
+
+## Sliding Window Counter
+
+To resolve this problem, we take two variables — one called `current_window` and one `previous_window` — and combine them with a **weighted estimate**, instead of storing timestamps or relying on a plain counter that can be easily bypassed.
+
+## What Math Says Here
+
+Let's say the window is 60 seconds and the cap is 100 req/min. It's currently `09:01:15`, that means we are 25% into our current window and 75% into our previous window. So our real previous window stretches from `09:00:15` to `09:01:15` — that's our real 100% previous window, and we've consumed 75% of it.
+
+So —
+
+- It includes the last 45 seconds of the previous window (`09:00:15` to `09:01:00`)
+- It includes all 15 seconds of the current window so far (`09:01:00` to `09:01:15`)
+
+So the true answer is (some portion of previous window's count) + (all of current window's count).
+
+We are 15 seconds into a 60-second window right now, that means 15/60 = 25% of the current window has passed. Which means the portion of the previous window still relevant is the remaining 75% (60-15=45 seconds, and 45/60 = 75%).
+
+That's the whole math here.
+
+## Putting It All Together
+
+- Previous window (`09:00:00`-`09:01:00`) had 80 requests total.
+- Current window (`09:01:00`-now) has 20 requests so far.
+- You're 15 seconds into the current window → 25% elapsed → 75% of previous window still "counts."
+
+Estimated total in your true last-60-seconds = 20 (all of current) + 75% of 80 (partial previous) = 20 + 60 = **80**.
+
+And 80 is the best guess we have. This algorithm works on approximation and estimation — it's not pixel perfect, but it does overcome the window burst problem and the memory cost problem.
+
+Compare it to Sliding Window Log, which stores every single request's exact timestamp to answer this same question perfectly. If you have thousands of users each making thousands of requests, that's a massive amount of stored data. Sliding Window Counter answers the same question approximately using just 2 numbers per user — a huge memory win, with a small accuracy trade-off.
+
+That 80 is your best guess at "how many requests actually happened in the true last 60 seconds ending right now" — without ever storing individual timestamps. Just two numbers: previous window's total, current window's total.
+
+### The Formula
+
+```
+estimated_count = current_window_count + (previous_window_count × overlap_percentage)
+
+where overlap_percentage = (window_size - elapsed_in_current_window) / window_size
+```
+
+---
+
+## Comparison Table
+
+| Algorithm | Accuracy | Memory Cost | Handles Burst? | Good For |
+|---|---|---|---|---|
+| Fixed Window Counter | Low | Very low (1 counter) | No | Non-critical, high-throughput internal APIs |
+| Sliding Window Log | Perfect | High (1 timestamp per request) | Yes | Low-traffic, strict-accuracy needs |
+| Sliding Window Counter | Approximate | Very low (2 counters) | Mostly | Most production APIs, payment gateways, public APIs |
+
+---
+
+## References
+
+- [ByteByteGo — Design a Rate Limiter](https://bytebytego.com/courses/system-design-interview/design-a-rate-limiter)
+- [Arpit Bhayani — Sliding Window Rate Limiter](https://arpitbhayani.me/blogs/sliding-window-ratelimiter/)
+- [M.J. Michael — The Sliding Window Counter Algorithm (Python & Golang)](https://mjmichael.medium.com/the-sliding-window-counter-algorithm-a-dive-with-python-and-golang-implementations-d2139340b569)
+- [Avocadi — Rate Limiter: Sliding Window Counter](https://medium.com/@avocadi/rate-limiter-sliding-window-counter-7ec08dbe21d6)

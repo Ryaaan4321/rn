@@ -1,4 +1,3 @@
-// components/Blog.tsx — no SectionHeader, just the list
 "use client";
 
 import React from "react";
@@ -10,7 +9,7 @@ interface BlogPost {
   title: string;
   excerpt: string;
   date: string;
-  tag: string;
+  tags: string[];
 }
 
 interface BlogProps {
@@ -18,6 +17,7 @@ interface BlogProps {
 }
 
 function BlogCard({ post }: { post: BlogPost }) {
+  console.log("post == ", post);
   return (
     <Link
       href={`/blog/${post.slug}`}
@@ -29,9 +29,14 @@ function BlogCard({ post }: { post: BlogPost }) {
             <CalendarIcon size={14} />
             {post.date}
           </span>
-          <span className="text-xs text-[#6E6E6E] tracking-[-0.15px] px-2 py-0.5 bg-[#0c0c0c] border border-[#1f1f1f]">
-            {post.tag}
-          </span>
+          {/* {post.tags.map((tag) => ( */}
+            <span
+              // key={tag}
+              className="text-xs text-[#6E6E6E] tracking-[-0.15px] px-2 py-0.5 bg-[#141414] border border-[#1f1f1f]"
+            >
+              {post?.tags[0]}
+            </span>
+          {/* ))} */}
         </div>
         <span className="text-xs text-[#6E6E6E] tracking-[-0.15px] flex items-center gap-1 group-hover:text-[#F2F2F2] transition-colors">
           Read article

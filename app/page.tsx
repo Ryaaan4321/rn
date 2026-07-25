@@ -14,7 +14,7 @@ export default function Home() {
     title: post.title,
     excerpt: post.excerpt,
     date: post.date,
-    tag: post.tag,
+    tags: post.tags,
   }));
 
   return (

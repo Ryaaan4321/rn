@@ -10,12 +10,16 @@ export interface Post {
   slug: string;
   title: string;
   date: string;
-  tag: string;
+  tags: string[];
   excerpt: string;
   content: string;
   readingTime: string;
 }
-
+function normalizeTags(data: Record<string, unknown>): string[] {
+  if (Array.isArray(data.tags) && data.tags.length > 0) return data.tags;
+  if (typeof data.tag === "string") return [data.tag];
+  return ["general"];
+}
 function calculateReadingTime(content: string): string {
   const words = content.trim().split(/\s+/).length;
   const minutes = Math.ceil(words / 200);
@@ -35,7 +39,7 @@ export function getAllPosts(): Post[] {
         slug,
         title: data.title || "Untitled",
         date: data.date || "",
-        tag: data.tag || "general",
+        tags: normalizeTags(data),
         excerpt: data.excerpt || content.slice(0, 120) + "...",
         content,
         readingTime: calculateReadingTime(content),
@@ -54,7 +58,7 @@ export function getPostBySlug(slug: string): Post | null {
       slug,
       title: data.title || "Untitled",
       date: data.date || "",
-      tag: data.tag || "general",
+      tags: normalizeTags(data),
       excerpt: data.excerpt || content.slice(0, 120) + "...",
       content,
       readingTime: calculateReadingTime(content),

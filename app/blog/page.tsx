@@ -1,4 +1,3 @@
-// app/blog/page.tsx
 import { getAllPosts } from "@/lib/mdx";
 import Blog from "@/components/Blog";
 import Header from "@/components/Header";
@@ -10,7 +9,7 @@ export default function BlogPage() {
     title: post.title,
     excerpt: post.excerpt,
     date: post.date,
-    tag: post.tag,
+    tags: post.tags,
   }));
 
   return (

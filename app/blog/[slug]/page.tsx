@@ -4,6 +4,7 @@ import Link from "next/link";
 import { CalendarIcon, ArrowLeftIcon, ClockIcon } from "@/components/Icons";
 import Footer from "@/components/Footer";
 import type { ReactNode } from "react";
+import ShareButton from "@/components/ShareButton";
 const mdxComponents = {
   img: ({ src, alt, ...props }: { src?: string; alt?: string }) => {
     if (!src) return null;
@@ -144,12 +145,20 @@ export default async function BlogPostPage({
               <CalendarIcon size={14} />
               {post.date}
             </span>
-            <span className="text-xs text-[#6E6E6E] tracking-[-0.15px] px-2 py-0.5 bg-[#141414] border border-[#1f1f1f]">
-              {post.tag}
-            </span>
+            {post.tags.map((tag) => (
+              <span
+                key={tag}
+                 className="text-xs text-[#6E6E6E] tracking-[-0.15px] px-2 py-0.5 bg-[#141414] border border-[#1f1f1f]"
+              >
+                {tag}
+              </span>
+            ))}
             <span className="text-xs text-[#6E6E6E] tracking-[-0.15px] flex items-center gap-1">
               <ClockIcon size={14} />
               {post.readingTime}
+            </span>
+            <span>
+              <ShareButton title={post.title} slug={post.slug}/>
             </span>
           </div>
 

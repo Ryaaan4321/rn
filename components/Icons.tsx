@@ -157,3 +157,12 @@ export const TerminalIcon = ({ size = 16, className = "" }: IconProps) => (
     <line x1="12" y1="19" x2="20" y2="19" />
   </svg>
 );
+
+ 
+export const ShareIcon = ({ size = 12, className = "" }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M4 12v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6" />
+    <path d="M16 6l-4-4-4 4" />
+    <path d="M12 2v13" />
+  </svg>
+);
