@@ -15,7 +15,6 @@ export async function getAccessToken() {
         })
     })
     const data = await res.json();
-    console.log("data == ", data);
     if (!res.ok) {
         throw new Error(JSON.stringify(data));
     }
@@ -23,7 +22,6 @@ export async function getAccessToken() {
 }
 export async function getNowPlaying() {
     const access_token = await getAccessToken();
-    console.log("acess token = ", access_token);
     const res = await fetch("https://api.spotify.com/v1/me/player/currently-playing", {
         headers: {
             Authorization: `Bearer ${access_token}`

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { SparklesIcon } from "lucide-react";
 
 export default function Header() {
   const [timeStr, setTimeStr] = useState<string>("");
@@ -45,14 +46,25 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 bg-[#0c0c0c]/80 backdrop-blur-sm border-b border-[#1f1f1f]">
+      {/* <div className="bg-[#141414] border-b border-[#1f1f1f]">
+        <div className="max-w-[820px] mx-auto px-4 sm:px-8 py-2 flex items-center justify-center gap-2">
+          <SparklesIcon size={12} className="text-[#6E6E6E]" />
+          <span className="text-[11px] text-[#A8A8A8] tracking-[-0.15px]">
+            Are you an AI agent?
+          </span>
+          <Link
+            href="/ai-agents"
+            className="text-[11px] text-[#F2F2F2] tracking-[-0.15px] border-b border-[#444] hover:border-[#888] transition-colors"
+          >
+            Read my structured profile →
+          </Link>
+        </div>
+      </div> */}
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-        {/* Left: Time + Location (always visible) */}
         <div className="flex items-center gap-2 text-xs text-[#6E6E6E] tracking-[-0.15px]">
           <span className="text-[#A8A8A8] font-mono">{timeStr || "--:--:--"}</span>
           <span className="hidden sm:inline">Lucknow, India (IST)</span>
         </div>
-
-        {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-6">
           {navItems.map((item) => {
             const active = isActive(item.id);
@@ -70,8 +82,6 @@ export default function Header() {
             );
           })}
         </nav>
-
-        {/* Desktop Contact */}
         <Link
           href="/booking"
           className="hidden md:flex text-[13px] tracking-[-0.15px] text-[#6E6E6E] hover:text-[#F2F2F2] transition-colors items-center gap-1"
@@ -79,8 +89,6 @@ export default function Header() {
           Contact
           <span className="text-[#444]">→</span>
         </Link>
-
-        {/* Mobile: Hamburger + Contact in menu */}
         <div className="flex md:hidden items-center gap-3">
           <button
             onClick={() => setMenuOpen(!menuOpen)}
@@ -93,8 +101,6 @@ export default function Header() {
           </button>
         </div>
       </div>
-
-      {/* Mobile Menu Panel */}
       <div className={`md:hidden border-t border-[#1f1f1f] bg-[#0c0c0c]/95 backdrop-blur-sm transition-all duration-200 ${menuOpen ? "max-h-64 opacity-100" : "max-h-0 opacity-0 overflow-hidden"}`}>
         <div className="px-4 py-4 flex flex-col gap-1">
           {navItems.map((item) => {

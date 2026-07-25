@@ -1,0 +1,104 @@
+# Aryan Bhashkar — Backend Developer
+
+> Backend Developer specializing in high-performance APIs, scalable database architectures, rate-limiting systems, and robust server-side code.
+
+## About
+Aryan Bhashkar is a Backend Developer based in Lucknow, India (IST) with 1+ years of experience shipping production features. He focuses on backend engineering, system architecture, database design, and algorithmic problem solving (700+ LeetCode problems solved).
+
+- **Location:** Lucknow, India (IST)
+- **Experience:** 1+ Years
+- **Status:** Open for freelance & full-time backend engineering opportunities
+- **Email:** aryanbhofficial@gmail.com
+- **GitHub:** https://github.com/ryaaan4321
+- **LinkedIn:** https://www.linkedin.com/in/aryan-bhashkar
+- **LeetCode:** https://leetcode.com/u/aryan_aryan/
+
+---
+
+## Core Technical Skills
+- **Primary Focus:** Backend Development, REST API Design, Systems Architecture
+- **Languages:** TypeScript, JavaScript
+- **Databases & ORMs:** PostgreSQL, MongoDB, Redis, Prisma
+- **Frameworks & Runtimes:** Node.js, Next.js, React
+- **Infrastructure & Tools:** Redis Lua Scripts, Upstash Redis, Docker, PostHog, Razorpay, Cloudinary, Redux, Tailwind CSS, Git
+
+---
+
+## Engineering Philosophy
+1. **Performance First:** Optimizing database queries, caching strategies, and API routes to maintain low latency and high throughput under load.
+2. **Scalable Systems:** Designing clean data models, RESTful APIs, and decoupled service layers that scale with application growth.
+3. **Reliability & Resilience:** Prioritizing defensive error handling, input validation, secure authentication, and rate limiting for rock-solid uptime.
+4. **Pragmatic Execution:** Writing maintainable TypeScript with test-driven discipline to ship production features efficiently.
+
+---
+
+## Experience
+- **Frontend / Fullstack Developer @ Deckit AI** *(Dec 2025 – Present)*
+  - AI-powered presentation generation platform.
+  - Built authorization system and integrated Google Auth for secure login.
+  - Integrated PostHog for product analytics and executed UI overhauls across the platform.
+  - Merged 20+ pull requests directly into production.
+  - *Tech:* Next.js, React, TypeScript, PostgreSQL.
+
+- **Junior Software Developer @ Digipants** *(Aug 2024 – Nov 2025)*
+  - Hotel management platform (booking & room management workflows).
+  - Collaborated with senior engineers on system architecture and code maintainability.
+  - Drove efficiency improvements through codebase refactoring and MongoDB query optimization.
+  - *Tech:* Next.js, React, TypeScript, MongoDB, JavaScript.
+
+- **Software Development Intern @ Innayra Tech Pvt Ltd.** *(Winter 2023)*
+  - Built responsive, mobile-first web interface components from Figma designs.
+  - Worked within an Agile sprint structure with Git version control.
+  - *Tech:* JavaScript, PostgreSQL, Agile/SDLC.
+
+---
+
+## Featured Projects
+
+### 1. HiringNexus
+Recruitment platform streamlining hiring workflows with automated job postings, candidate tracking, and collaborative evaluation tools.
+- Designed scalable backend architecture and database models for high-volume candidate workflows.
+- Implemented real-time updates and evaluation dashboards for recruiter collaboration.
+- **Tech Stack:** Next.js, TypeScript, Prisma, Tailwind CSS, Shadcn UI, Cloudinary, Nodemailer, Redux
+- **GitHub:** https://github.com/Ryaaan4321/hiringnexus
+- **Live Demo:** https://hiringnexus.vercel.app
+
+### 2. LastDraft
+AI-powered resume builder leveraging Generative AI for tailored professional summaries and job descriptions.
+- Built customization interface, resume download capabilities, and admin management dashboard.
+- Integrated Razorpay payment gateway for premium features and advanced template access.
+- **Tech Stack:** OpenAI API, Generative AI, Next.js, TypeScript, Prisma, Tailwind CSS, Shadcn UI, Cloudinary, Razorpay
+- **GitHub:** https://github.com/ryaaan4321/lastdraft
+- **Live Demo:** https://last-draft.vercel.app/
+
+### 3. Dictionary
+Vocabulary management platform with duplicate-check validation system to prevent redundant word entries.
+- Implemented word tracking, search, and storage backed by efficient PostgreSQL database schema.
+- **Tech Stack:** Next.js, TypeScript, Prisma, PostgreSQL, Tailwind CSS, Shadcn UI
+
+---
+
+## Technical Articles & Writings
+
+### 1. Building Rate Limiters from Scratch: What I Learned About Latency
+*Published: July 10, 2026*
+- Analyzed network RTT impact on Redis-based rate limiters (Upstash remote vs. local Redis).
+- Observed a 96% drop in p50 latency (71ms down to 3ms) by reducing network round trips and utilizing Redis Lua scripts for atomic execution (`EVAL`).
+- Load-tested with Autocannon handling 152k requests in 60s with 149,982 requests correctly rate-limited with HTTP 429.
+
+### 2. Sliding Window Log: A Smarter Rate Limiter
+*Published: July 23, 2026*
+- Explored rate limiting beyond fixed windows using Redis sorted sets (`ZSET`) and atomic Lua scripting.
+- Addressed boundary burst exploitation and check-then-act race conditions.
+- Evaluated $O(\log N)$ time complexity and memory trade-offs for high-precision endpoints (e.g., login attempts, checkout APIs).
+
+### 3. Rate Limiting Deep Dive: The Sliding Window Counter Algorithm
+*Published: July 25, 2026*
+- Detailed the mathematical breakdown of weighted window estimates combining `current_window` and `previous_window` counts.
+- Solved the window burst problem of Fixed Window Counters while avoiding the memory overhead of Sliding Window Logs.
+
+---
+
+## Problem Solving & Achievements
+- **LeetCode:** 700+ problems solved across Algorithms, Data Structures, Dynamic Programming, and System Design.
+- **Active Problem Solving:** 2+ years of consistent algorithmic practice focusing on optimal time and space complexity.

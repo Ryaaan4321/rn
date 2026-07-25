@@ -17,7 +17,6 @@ interface BlogProps {
 }
 
 function BlogCard({ post }: { post: BlogPost }) {
-  console.log("post == ", post);
   return (
     <Link
       href={`/blog/${post.slug}`}
@@ -30,12 +29,12 @@ function BlogCard({ post }: { post: BlogPost }) {
             {post.date}
           </span>
           {/* {post.tags.map((tag) => ( */}
-            <span
-              // key={tag}
-              className="text-xs text-[#6E6E6E] tracking-[-0.15px] px-2 py-0.5 bg-[#141414] border border-[#1f1f1f]"
-            >
-              {post?.tags[0]}
-            </span>
+          <span
+            // key={tag}
+            className="text-xs text-[#6E6E6E] tracking-[-0.15px] px-2 py-0.5 bg-[#141414] border border-[#1f1f1f]"
+          >
+            {post?.tags[0]}
+          </span>
           {/* ))} */}
         </div>
         <span className="text-xs text-[#6E6E6E] tracking-[-0.15px] flex items-center gap-1 group-hover:text-[#F2F2F2] transition-colors">
@@ -56,11 +55,21 @@ function BlogCard({ post }: { post: BlogPost }) {
 }
 
 export default function Blog({ posts }: BlogProps) {
+  const displayed = posts.slice(0, 3);
   return (
     <div className="flex flex-col">
-      {posts.map((post) => (
+      {displayed.map((post) => (
         <BlogCard key={post.slug} post={post} />
       ))}
+
+      {posts.length > 3 && (
+        <Link
+          href="/blog"
+          className="text-xs text-[#6E6E6E] hover:text-[#F2F2F2] transition-colors tracking-[-0.15px] mt-4"
+        >
+          View all {posts.length} articles →
+        </Link>
+      )}
     </div>
   );
 }

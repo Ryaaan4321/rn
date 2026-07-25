@@ -26,7 +26,7 @@ export default function Hero() {
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap mb-2">
-                <h1 className="text-2xl font-medium text-[#F2F2F2] tracking-[-0.15px]">Aryan .</h1>
+                <h1 className="text-2xl font-medium text-[#F2F2F2] tracking-[-0.15px]">Aryan B.</h1>
               </div>
               <p className="text-[13px] text-[#A8A8A8] mb-2 tracking-[-0.15px]">Backend Developer</p>
               <div className="flex items-center gap-1.5 text-xs text-[#6E6E6E] tracking-[-0.15px]">
@@ -43,7 +43,7 @@ export default function Hero() {
               href="https://github.com/ryaaan4321"
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 border border-[#1f1f1f] rounded-lg bg-[#0c0c0c] text-[#A8A8A8] hover:text-[#F2F2F2] hover:border-[#2a2a2a] transition-all"
+              className="p-2  rounded-lg text-[#A8A8A8] hover:text-[#F2F2F2] hover:border-[#2a2a2a] transition-all"
               aria-label="GitHub"
             >
               <GithubIcon size={14} />
@@ -52,7 +52,7 @@ export default function Hero() {
               href="https://www.linkedin.com/in/aryan-bhashkar"
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 border border-[#1f1f1f] rounded-lg bg-[#0c0c0c] text-[#A8A8A8] hover:text-[#F2F2F2] hover:border-[#2a2a2a] transition-all"
+              className="p-2  rounded-lg text-[#A8A8A8] hover:text-[#F2F2F2] hover:border-[#2a2a2a] transition-all"
               aria-label="LinkedIn"
             >
               <LinkedinIcon size={14} />
@@ -61,14 +61,14 @@ export default function Hero() {
               href="https://leetcode.com/u/aryan_aryan/"
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 border border-[#1f1f1f] rounded-lg bg-[#0c0c0c] text-[#A8A8A8] hover:text-[#F2F2F2] hover:border-[#2a2a2a] transition-all"
+              className="p-2  rounded-lg text-[#A8A8A8] hover:text-[#F2F2F2] hover:border-[#2a2a2a] transition-all"
               aria-label="LeetCode"
             >
               <TbBrandLeetcode size={14} />
             </a>
             <Link
               href="/booking"
-              className="p-2 border border-[#1f1f1f] rounded-lg bg-[#0c0c0c] text-[#A8A8A8] hover:text-[#F2F2F2] hover:border-[#2a2a2a] transition-all"
+              className="p-2  rounded-lg text-[#A8A8A8] hover:text-[#F2F2F2] hover:border-[#2a2a2a] transition-all"
               aria-label="Book a Call (Cal.com)"
             >
               <CalendarIcon size={14} />
