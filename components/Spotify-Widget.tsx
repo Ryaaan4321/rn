@@ -17,7 +17,7 @@ export default function SpotifyWidget() {
 
   const fetchNowPlaying = async () => {
     try {
-      const res = await fetch("/api/spotify/now-playing");
+      const res = await fetch("");
       const data = await res.json();
       setTrack(data);
     } catch {

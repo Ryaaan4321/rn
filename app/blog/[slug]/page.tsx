@@ -5,6 +5,8 @@ import { CalendarIcon, ArrowLeftIcon, ClockIcon } from "@/components/Icons";
 import Footer from "@/components/Footer";
 import type { ReactNode } from "react";
 import ShareButton from "@/components/ShareButton";
+import { ArrowRightIcon } from "@/components/Icons";
+import { Views } from "@/components/Views";
 const mdxComponents = {
   img: ({ src, alt, ...props }: { src?: string; alt?: string }) => {
     if (!src) return null;
@@ -36,9 +38,9 @@ const mdxComponents = {
     </h3>
   ),
   p: ({ children }: { children: ReactNode }) => (
-    <p className="text-sm text-[#A8A8A8] tracking-[-0.15px] leading-[1.8] mb-5">
+    <div className="text-sm text-[#A8A8A8] tracking-[-0.15px] leading-[1.8] mb-5">
       {children}
-    </p>
+    </div>
   ),
   a: ({ href, children }: { href?: string; children: ReactNode }) => (
     <a
@@ -127,7 +129,10 @@ export default async function BlogPostPage({
   const post = getPostBySlug(slug);
   if (!post) return notFound();
   const compiledContent = await compilePost(post.content, mdxComponents);
-
+  const allPosts = getAllPosts();
+  const currentIndex = allPosts.findIndex((p) => p.slug === slug);
+  const prevPost = currentIndex < allPosts.length - 1 ? allPosts[currentIndex + 1] : null;
+  const nextPost = currentIndex > 0 ? allPosts[currentIndex - 1] : null;
   return (
     <div className="min-h-screen bg-[#0c0c0c]">
       <main className="flex justify-center">
@@ -139,16 +144,20 @@ export default async function BlogPostPage({
             <ArrowLeftIcon size={14} />
             Back
           </Link>
-
           <div className="flex items-center gap-3 mb-4 flex-wrap">
             <span className="text-xs text-[#6E6E6E] tracking-[-0.15px] flex items-center gap-1">
               <CalendarIcon size={14} />
               {post.date}
             </span>
+            {post.tags.length > 0 && (
+              <span className="md:hidden text-xs text-[#6E6E6E] tracking-[-0.15px] px-2 py-0.5 bg-[#141414] border border-[#1f1f1f]">
+                {post.tags[0]}
+              </span>
+            )}
             {post.tags.map((tag) => (
               <span
                 key={tag}
-                 className="text-xs text-[#6E6E6E] tracking-[-0.15px] px-2 py-0.5 bg-[#141414] border border-[#1f1f1f]"
+                className="hidden md:inline-block text-xs text-[#6E6E6E] tracking-[-0.15px] px-2 py-0.5 bg-[#141414] border border-[#1f1f1f]"
               >
                 {tag}
               </span>
@@ -158,19 +167,57 @@ export default async function BlogPostPage({
               {post.readingTime}
             </span>
             <span>
-              <ShareButton title={post.title} slug={post.slug}/>
+              <ShareButton title={post.title} slug={post.slug} />
             </span>
+            <Views slug={slug} />
           </div>
-
           <h1 className="text-2xl md:text-3xl font-medium tracking-[-0.15px] text-[#F2F2F2] mb-10 leading-tight">
             {post.title}
           </h1>
-
           <div className="max-w-none">{compiledContent}</div>
+          <nav className="mt-16 pt-8 border-t border-[#1f1f1f]">
+            <div className="flex justify-between items-center">
+              {prevPost ? (
+                <Link
+                  href={`/blog/${prevPost.slug}`}
+                  className="group flex items-center gap-2"
+                >
+                  <ArrowLeftIcon size={14} className="text-[#6E6E6E] group-hover:text-[#F2F2F2] transition-colors" />
+                  <div className="flex flex-col">
+                    <span className="text-xs text-[#6E6E6E] tracking-[-0.15px]">
+                      Previous
+                    </span>
+                    <span className="hidden sm:block text-sm text-[#A8A8A8] group-hover:text-[#F2F2F2] transition-colors tracking-[-0.15px] leading-snug line-clamp-1 max-w-[200px]">
+                      {prevPost.title}
+                    </span>
+                  </div>
+                </Link>
+              ) : (
+                <div />
+              )}
+              {nextPost ? (
+                <Link
+                  href={`/blog/${nextPost.slug}`}
+                  className="group flex items-center gap-2"
+                >
+                  <div className="flex flex-col items-end">
+                    <span className="text-xs text-[#6E6E6E] tracking-[-0.15px]">
+                      Next
+                    </span>
+                    <span className="hidden sm:block text-sm text-[#A8A8A8] group-hover:text-[#F2F2F2] transition-colors tracking-[-0.15px] leading-snug line-clamp-1 max-w-[200px] text-right">
+                      {nextPost.title}
+                    </span>
+                  </div>
+                  <ArrowRightIcon size={14} className="text-[#6E6E6E] group-hover:text-[#F2F2F2] transition-colors" />
+                </Link>
+              ) : (
+                <div />
+              )}
+            </div>
+          </nav>
         </article>
       </main>
-
       <Footer />
     </div>
-  );
+  )
 }

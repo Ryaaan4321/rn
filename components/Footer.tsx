@@ -45,10 +45,8 @@ export function Footer() {
           </a>
         ))}
       </div>
-      <p className="text-xl font-medium tracking-[-0.15px] mb-3 font-mono">
-        <p
-          className="text-[#F2F2F2] hover:text-[#A8A8A8] transition-colors duration-300 inline-block"
-        >
+      <div className="text-xl font-medium tracking-[-0.15px] mb-3 font-mono">
+        <span className="text-[#F2F2F2] hover:text-[#A8A8A8] transition-colors duration-300 inline-block">
           wanna build for the billions of peoples.
           {showCursor && (
             <span
@@ -56,8 +54,8 @@ export function Footer() {
                 }`}
             />
           )}
-        </p>
-      </p>
+        </span>
+      </div>
 
       <p className="text-sm text-[#A8A8A8] tracking-[-0.15px] mb-8">
         Open for freelance and full-time backend engineering roles.
