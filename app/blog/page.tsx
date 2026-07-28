@@ -24,7 +24,7 @@ export default function BlogPage() {
             Thoughts on backend engineering, system design, and things I break while building.
           </p>
 
-          <Blog posts={posts} />
+          <Blog posts={posts} limit={posts.length}/>
         </div>
 
         <Footer />

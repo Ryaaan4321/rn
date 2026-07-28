@@ -1,0 +1,157 @@
+---
+title: "Redis Internals — Part 1: Atomicity, Transactions, and Lua Scripting"
+description: "A deep dive into INCR, WATCH/MULTI/EXEC, EVAL/EVALSHA, and SET's NX/XX/EX/PX flags — how Redis actually guarantees atomicity under the hood."
+date: "2026-07-28"
+tags: ["redis", "system-design", "backend"]
+series: "Redis Internals"
+part: 1
+---
+
+All of us have used Redis in some way or another — and if we haven't directly, the daily applications we rely on are almost certainly using Redis behind the scenes.
+
+So today we're going to discuss Redis internals, and this is going to be **Part 1** of that series.
+
+---
+
+## INCR and DECR — Atomic Counters
+
+```
+INCR key_name
+```
+
+`INCR` is used to increment the value of a key. The important part isn't the increment itself — it's that this is an **atomic operation**, meaning no other client can interfere or interleave in the middle of it. Two clients calling `INCR` on the same key at the same time will never step on each other; Redis guarantees the operations happen one after another, never partially overlapping.
+
+```
+DECR key_name
+```
+
+`DECR` works the same way, just decrementing instead of incrementing. `INCRBY` and `DECRBY` follow the same atomicity guarantee, just with a custom step value instead of 1.
+
+---
+
+## Optimistic Concurrency: WATCH, MULTI, EXEC
+
+### WATCH
+
+`WATCH` marks a key you want to monitor — it tells Redis "keep an eye on this key for me."
+
+### MULTI
+
+`MULTI` starts queuing commands. Every command issued after `MULTI` returns `QUEUED` instead of executing immediately — nothing actually runs yet.
+
+### EXEC
+
+`EXEC` attempts to run the whole queued batch atomically. But first, Redis checks: did any watched key get modified (by any client) since the `WATCH`?
+
+- If no modification happened → all queued commands execute atomically, and `EXEC` returns the results.
+- If any watched key changed → the whole transaction aborts, and `EXEC` returns `nil` (nothing executes). You have to detect this and retry your logic.
+
+### Example: a rate limiter with WATCH/MULTI/EXEC
+
+```
+WATCH requests:user123
+count = GET requests:user123      -- read outside the transaction
+
+if count is None or count < limit:
+    MULTI
+    INCR requests:user123
+    EXPIRE requests:user123 60
+    EXEC                          -- fails if key changed between WATCH and EXEC
+else:
+    reject request
+```
+
+**The problem:** between your `GET` and your `EXEC`, another client could sneak in and increment the same key. Your `EXEC` would then fail (return `nil`), and you'd have to loop back and retry the whole `WATCH → GET → MULTI → EXEC` cycle.
+
+This retry loop is called **optimistic concurrency control** — you assume no conflict will happen, and you only pay the cost of a retry when there actually is one.
+
+---
+
+## WATCH/MULTI/EXEC vs Lua Scripting (EVAL)
+
+The core difference is *where the decision-making logic lives* and *what "atomic" actually guarantees*.
+
+| | WATCH/MULTI/EXEC | Lua script (EVAL) |
+|---|---|---|
+| **Atomicity** | Only the queued commands run atomically. Any logic between `WATCH` and `EXEC` (like your `GET` and the `if` check) happens in your application, not atomically. | The entire script — reads, writes, and branching logic — runs as a single atomic unit on the Redis server. No other command can interleave, ever. |
+| **Read-then-decide logic** | Must happen client-side. Redis can't make decisions here; it can only detect if data changed and abort. | Happens server-side. You can `GET` a value, check it in an `if`, and conditionally `SET` — all inside one indivisible operation. |
+| **Race conditions** | Possible in the sense that you retry on conflict (it's "detect and retry," not "prevent"). Under high contention, you can get many retries or even livelock. | Not possible — since nothing else can run while your script executes, there's no window for another client to interfere. |
+| **Network round-trips** | Multiple round trips: `WATCH`, `GET`, `MULTI`, queue commands, `EXEC`. More latency, more chances of hitting the contention window. | One round trip. The script and all its logic execute in a single request. |
+| **Expressiveness** | Limited to "queue commands and hope nothing changed." No real branching based on data read inside the transaction. | Full Lua language — loops, conditionals, string manipulation, calling multiple Redis commands based on intermediate results. |
+| **Best for** | Simple cases where conflicts are rare, or where you genuinely want "abort if changed" semantics (e.g., simple check-and-set). | Anything with actual conditional logic on data — sliding-window rate limiters, atomic increment-with-cap, leaderboard updates, anything where you read a value and immediately need to act on it without any gap. |
+
+Concretely, for a rate limiter: this is exactly why the sliding-window rate limiter used Lua instead of `WATCH`/`MULTI`/`EXEC` — it needed to read the current window count, compare it against the limit, and conditionally allow/reject/increment, all without any other request sneaking in between the read and the write. `WATCH`/`MULTI`/`EXEC` can't express "read a value and branch on it atomically" — it can only say "run these blind writes, but abort if these keys moved." Lua is a much better fit whenever the logic itself depends on data you just read.
+
+> **A word of caution:** Lua scripts block Redis's single event loop for their entire duration, so you want them fast and side-effect-light — no heavy loops over huge datasets. This ties back to why a stray `flushall()` inside a per-request Lua path is a serious problem: it nukes far more than intended, atomically, on every single request.
+
+---
+
+## EVAL and EVALSHA
+
+```
+EVAL(lua_script, num_keys, [key1, key2, ..., keyN], [arg1, arg2, ..., argN])
+```
+
+- `lua_script` — the Lua script, passed as a string.
+- `num_keys` — how many of the following arguments are keys.
+- everything after that — filled in as `ARGV` arguments inside the script.
+
+### EVALSHA
+
+```
+EVALSHA(sha1_hash, num_keys, [key1, key2, ..., keyN], [arg1, arg2, ..., argN])
+```
+
+`EVALSHA` is the better-performing version of `EVAL`. Every time you call `EVAL`, you send the entire script text over the network to Redis. If the script is small, this is negligible — but if you're calling the same script thousands of times per second (say, to acquire a lock), you're sending the same bytes over the network again and again for no reason, when Redis already has the script.
+
+`EVALSHA` fixes this by letting you send a short hash instead of the full script. Once a script is known to Redis (loaded via a prior `EVAL` or an explicit `SCRIPT LOAD`), Redis compiles it, caches it, and returns a 40-character SHA1 hash of the exact script. From then on, you call `EVALSHA` with that hash instead of the script text — same argument structure as `EVAL`, just swapping `lua_script` for the SHA1 hash.
+
+One thing to keep in mind: this cached hash is **not persisted forever**. It can be cleared by a `FLUSH`, a Redis restart, or by hitting internal cache limits. If you call `EVALSHA` with a hash Redis doesn't currently have cached, it returns a `NOSCRIPT` error instead of failing silently or running an old version. Your client is expected to catch this and fall back to `EVAL` (which re-registers the script as a side effect), or explicitly re-run `SCRIPT LOAD`.
+
+```js
+async function runScript(sha, script, keys, args) {
+  try {
+    return await redis.evalsha(sha, keys.length, ...keys, ...args);
+  } catch (err) {
+    if (err.message.includes('NOSCRIPT')) {
+      // script is not cached anymore — fall back to EVAL, which re-registers it
+      return await redis.eval(script, keys.length, ...keys, ...args);
+    }
+    throw err;
+  }
+}
+```
+
+---
+
+## SET with NX / XX / EX / PX
+
+We already know `SET` sets a value, but it also accepts arguments worth knowing:
+
+- **NX** — only set if the key doesn't already exist
+- **XX** — only set if the key already exists
+- **EX** — set the expiry, in seconds
+- **PX** — set the expiry, in milliseconds
+
+This single command used to require two separate commands (`SETNX` then `EXPIRE`), which reopened a race window between them — another client could act on the key after the `SETNX` but before the `EXPIRE` landed. Modern Redis lets you do "set if not exists, with a TTL" as one atomic command — no Lua needed.
+
+This is exactly the distributed lock pattern, and it doesn't need a script at all if all you're doing is acquiring the lock:
+
+```js
+const acquired = await redis.set('lock:order:123', 'client-abc', 'NX', 'EX', 30);
+// acquired === 'OK' if the lock was acquired, null if it was already locked
+```
+
+You only need Lua when you have to check-and-then-do-something-conditionally in one step — like releasing a lock only if you're the owner. That's a read + conditional delete, which `SET NX` alone can't express.
+
+---
+
+## Coming Up in Part 2
+
+We've covered atomicity primitives — `INCR`/`DECR`, `WATCH`/`MULTI`/`EXEC`, `EVAL`/`EVALSHA`, and `SET`'s flags. Part 2 will build on these to look at how Redis actually persists and will look at the other demons that can be behaded with the redis
+
+## References
+
+- [Redis Doc](https://redis-doc-test.readthedocs.io/en/latest/commands/client-pause/)
+- [Hello Interview](https://www.hellointerview.com/learn/system-design/deep-dives/redis)
+- [Architecture Notes](https://architecturenotes.co/p/redis)

@@ -14,6 +14,7 @@ interface BlogPost {
 
 interface BlogProps {
   posts: BlogPost[];
+  limit?: number;
 }
 
 function BlogCard({ post }: { post: BlogPost }) {
@@ -54,15 +55,15 @@ function BlogCard({ post }: { post: BlogPost }) {
   );
 }
 
-export default function Blog({ posts }: BlogProps) {
-  const displayed = posts.slice(0, 3);
+export default function Blog({ posts, limit = 3 }: BlogProps) {
+  const displayed = limit ? posts.slice(0, limit) : posts;
   return (
     <div className="flex flex-col">
       {displayed.map((post) => (
         <BlogCard key={post.slug} post={post} />
       ))}
 
-      {posts.length > 3 && (
+      {limit && posts.length > limit && (
         <Link
           href="/blog"
           className="text-xs text-[#6E6E6E] hover:text-[#F2F2F2] transition-colors tracking-[-0.15px] mt-4"
