@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import ShareButton from "@/components/ShareButton";
 import { ArrowRightIcon } from "@/components/Icons";
 import { Views } from "@/components/Views";
+import { HeadingLink } from "@/components/HeadingLink";
 const mdxComponents = {
   img: ({ src, alt, ...props }: { src?: string; alt?: string }) => {
     if (!src) return null;
@@ -27,14 +28,22 @@ const mdxComponents = {
       </figure>
     );
   },
-  h2: ({ children }: { children: ReactNode }) => (
-    <h2 className="text-lg font-medium text-[#F2F2F2] tracking-[-0.15px] mt-10 mb-4">
+  h2: ({ id, children }: { id?: string; children: ReactNode }) => (
+    <h2
+      id={id}
+      className="group scroll-mt-24 text-lg font-medium text-[#F2F2F2] tracking-[-0.15px] mt-10 mb-4"
+    >
       {children}
+      <HeadingLink id={id} />
     </h2>
   ),
-  h3: ({ children }: { children: ReactNode }) => (
-    <h3 className="text-base font-medium text-[#F2F2F2] tracking-[-0.15px] mt-8 mb-3">
+  h3: ({ id, children }: { id?: string; children: ReactNode }) => (
+    <h3
+      id={id}
+      className="group scroll-mt-24 text-base font-medium text-[#F2F2F2] tracking-[-0.15px] mt-8 mb-3"
+    >
       {children}
+      <HeadingLink id={id} />
     </h3>
   ),
   p: ({ children }: { children: ReactNode }) => (

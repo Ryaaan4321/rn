@@ -3,6 +3,7 @@ import path from "path";
 import matter from "gray-matter";
 import { compileMDX } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
+import rehypeSlug from "rehype-slug";
 
 const postsDirectory = path.join(process.cwd(), "content/posts");
 
@@ -78,6 +79,7 @@ export async function compilePost(
     options: {
       mdxOptions: {
         remarkPlugins: [remarkGfm],
+        rehypePlugins:[rehypeSlug]
       },
     },
   });
