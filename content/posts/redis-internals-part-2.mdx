@@ -1,0 +1,156 @@
+---
+title: "Redis Internals — Part 2: redis.call vs redis.method, and Hashes"
+date: "2026-07-31"
+tags: ["redis", "system-design", "backend"]
+excerpt: "The real difference between redis.call and typed methods like redis.incr, plus a full guide to Redis hashes — HSET, HGETALL, HSCAN, and how they behave differently inside a Lua script."
+---
+
+# Redis Internals — Part 2: redis.call vs redis.method, and Hashes
+
+## redis.call vs redis.method (incr, decr, hgetall, whatever)
+
+The main difference between `redis.call` and a typed method like `redis.incr()` is *where it exists and what context it runs in*.
+
+`redis.call(...)` only exists **inside a Lua script** — the one you pass to `EVAL`. It's a function Redis's embedded Lua interpreter gives you to invoke Redis commands from within the script, on the server itself. It runs as a single atomic operation — no network round trip, no interleaving from other clients.
+
+`redis.incr(key)` (ioredis) runs from your Node app, over the network, as its own standalone command. It's atomic on its own, but not atomic with anything else you do before or after it — another client could run between your `GET` and your `redis.incr()` unless you're inside a Lua script or a `MULTI`/`EXEC` block.
+
+### redis.call vs redis.pcall
+
+`redis.call` throws and aborts the whole script if the command errors. `redis.pcall` catches the error and returns it as a table instead of crashing the script — this matters when you want to handle a Redis error gracefully rather than letting the entire script fail.
+
+### The one-line summary
+
+`redis.call('method_name', key_name)` is the interface used inside a Lua script (run via `EVAL`/`EVALSHA`) that lets the script execute any Redis command from inside Redis itself, in the same execution context as Redis — no client, no network hop, just server-side dispatch.
+
+---
+
+## Redis Hashes
+
+`HSET` is the Redis command for a hash — when you want one key to hold multiple field-value pairs. Think of it as a small JSON object, without needing `JSON.stringify()` or `JSON.parse()`.
+
+```
+user:123 → { name: "Aryan", role: "backend", age: "24" }
+```
+
+### Writing
+
+```
+HSET key field value [field value ...]      -- set one or more fields
+HSETNX key field value                      -- set field only if it doesn't already exist
+HMSET key field value [field value ...]     -- deprecated, HSET does this now
+```
+
+### Reading
+
+```
+HGET key field                -- get one field
+HMGET key field1 field2 ...   -- get multiple specific fields
+HGETALL key                   -- get everything (all fields + values)
+HKEYS key                      -- just the field names
+HVALS key                      -- just the values
+HLEN key                       -- number of fields
+HEXISTS key field              -- does this field exist? (0/1)
+HRANDFIELD key [count]         -- random field(s), useful for sampling
+```
+
+### Updating / removing
+
+```
+HDEL key field [field ...]     -- delete one or more fields
+HINCRBY key field increment    -- atomically increment a numeric field
+HINCRBYFLOAT key field increment
+```
+
+> **Important:** `HGETALL` on a large hash is a problem — it blocks Redis's single thread while it dumps everything at once, since it's O(N) on the number of fields. Once a hash is large enough that this becomes a real cost, use `HSCAN` instead, which iterates incrementally rather than dumping the whole hash in one blocking call.
+>
+> ```
+> HSCAN key cursor [MATCH pattern] [COUNT count]
+> ```
+
+### Field-level TTL (newer Redis)
+
+```
+HEXPIRE key seconds FIELDS numfields field [field ...]
+HTTL key FIELDS numfields field [field ...]
+HPERSIST key FIELDS numfields field [field ...]
+```
+
+---
+
+## HGETALL outside Lua vs inside Lua
+
+Say you store a hash like this:
+
+```
+HSET user:123 name "Aryan" age "23" city "Lucknow"
+```
+
+**Outside Lua**, calling `HGETALL user:123` from a normal client returns a flat list:
+
+```
+name Aryan age 23 city Lucknow
+```
+
+It's not returned as key-value pairs in a map structure — it's a flat array alternating field, value, field, value.
+
+**Inside Lua**, the same call gets converted into a Lua table — still flat, a 1-indexed array where odd indices are field names and even indices are values:
+
+```lua
+local result = redis.call('HGETALL', KEYS[1])
+-- result = { 'name', 'Aryan', 'age', '23', 'city', 'Lucknow' }
+```
+
+To actually use it as a named table, you loop over it in pairs:
+
+```lua
+local result = redis.call('HGETALL', KEYS[1])
+local data = {}
+for i = 1, #result, 2 do
+    data[result[i]] = result[i + 1]
+end
+-- now data.name == 'Aryan', data.age == '23'
+```
+
+This loop pattern — `for i = 1, #result, 2 do` — is the standard idiom you'll see in any Lua script that needs to read a hash's fields. Worth recognizing on sight.
+
+### Why use HGETALL inside a Lua script instead of calling it directly from Node
+
+Same atomicity reasoning as everywhere else in Redis: if you need to read a hash's current state, make a decision based on it, and write something else — all in one uninterruptible step — that's when it needs to live inside a Lua script.
+
+If you're just reading and not conditionally writing anything based on it, there's no reason to wrap it in Lua at all — just call `HGETALL` directly from Node with ioredis. No atomicity benefit gained by scripting a plain read.
+
+**Example where wrapping it does make sense** — a compare-and-swap on a hash field, conditionally updating only if a field matches an expected value:
+
+```lua
+local data = redis.call('HGETALL', KEYS[1])
+local current = {}
+for i = 1, #data, 2 do
+    current[data[i]] = data[i + 1]
+end
+
+if current['status'] == ARGV[1] then
+    redis.call('HSET', KEYS[1], 'status', ARGV[2])
+    return 1
+else
+    return 0
+end
+```
+
+Without Lua, "read status, check it, then update it" is three separate steps from your app — vulnerable to a race between the read and the write. Wrapped in Lua, it's atomic.
+
+---
+
+## Where hashes are actually used
+
+- **User profiles / session data** — `HSET session:abc123 userId 42 email "x@y.com" lastActive 1690000000`. One key, structured fields, partial reads/writes without pulling the whole object.
+- **Object caching** — instead of caching a Postgres row as a JSON string blob, store it as a hash. Lets you update just one field (`HSET`) without reading, parsing, mutating, and rewriting the entire JSON string.
+- **Counters grouped by entity** — e.g. a user's stats: `HINCRBY user:123:stats posts 1`, `HINCRBY user:123:stats likes 1`. Atomic per-field increments without touching other fields.
+- **Feature flags / config per entity** — fields as flags, easy to toggle individually.
+- **Shopping cart** — `HSET cart:user123 productA 2 productB 1`. Quantity per product, add/remove/update one item without rewriting the whole cart.
+
+---
+
+## Key takeaway
+
+`HGETALL` returns everything in the hash — all fields, all values. If your hash is large, this is a relatively expensive operation, O(N) on the number of fields, and something to be mindful of at scale. That's exactly why `HSCAN` exists.
