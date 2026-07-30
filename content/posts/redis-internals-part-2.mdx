@@ -154,3 +154,15 @@ Without Lua, "read status, check it, then update it" is three separate steps fro
 ## Key takeaway
 
 `HGETALL` returns everything in the hash — all fields, all values. If your hash is large, this is a relatively expensive operation, O(N) on the number of fields, and something to be mindful of at scale. That's exactly why `HSCAN` exists.
+
+---
+
+## Coming Up in Part 3
+
+We've now covered `redis.call` vs typed client methods, and hashes — `HSET`/`HGETALL`/`HSCAN`, field-level TTLs, and how `HGETALL` behaves differently inside a Lua script versus a normal client call. Part 3 will look at how Redis actually persists data to disk (RDB snapshots, AOF), and the other demons that can be tamed with Redis.
+
+## References
+
+- [Redis Doc](https://redis-doc-test.readthedocs.io/en/latest/commands/client-pause/)
+- [Hello Interview](https://www.hellointerview.com/learn/system-design/deep-dives/redis)
+- [Architecture Notes](https://architecturenotes.co/p/redis)
