@@ -46,7 +46,7 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 bg-[#0c0c0c]/80 backdrop-blur-sm border-b border-[#1f1f1f]">
-      {/* <div className="bg-[#141414] border-b border-[#1f1f1f]">
+      <div className="bg-[#141414] border-b border-[#1f1f1f]">
         <div className="max-w-[820px] mx-auto px-4 sm:px-8 py-2 flex items-center justify-center gap-2">
           <SparklesIcon size={12} className="text-[#6E6E6E]" />
           <span className="text-[11px] text-[#A8A8A8] tracking-[-0.15px]">
@@ -59,7 +59,7 @@ export default function Header() {
             Read my structured profile →
           </Link>
         </div>
-      </div> */}
+      </div>
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
         <div className="flex items-center gap-2 text-xs text-[#6E6E6E] tracking-[-0.15px]">
           <span className="text-[#A8A8A8] font-mono">{timeStr || "--:--:--"}</span>

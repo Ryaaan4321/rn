@@ -93,3 +93,8 @@ button {
 ::-webkit-scrollbar-thumb:hover {
   background: #2a2a2a;
 }
+@layer utilities {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}

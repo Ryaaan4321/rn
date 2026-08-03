@@ -15,6 +15,9 @@ const config: Config = {
       transitionDuration: {
         "400": "400ms",
       },
+      padding: {
+        safe: 'env(safe-area-inset-bottom)',
+      },
     },
   },
   plugins: [require("@tailwindcss/typography")],
