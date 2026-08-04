@@ -3,34 +3,35 @@
 import { cn } from "@/lib/utils";
 import {
     Home,
-    Briefcase,
     FileText,
-    Mail,
+    Contact2,
     Github,
     Linkedin,
     Twitter,
 } from "lucide-react";
+import { SiLeetcode } from "react-icons/si";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 
 const navItems = [
     { icon: Home, label: "Home", href: "/" },
-    { icon: Briefcase, label: "Work", href: "#experience", isHash: true },
     { icon: FileText, label: "Blog", href: "/blog" },
-    { icon: Mail, label: "Contact", href: "/booking" },
+    { icon: Contact2, label: "Contact", href: "/booking" },
 ];
 
 const socialItems = [
     { icon: Github, label: "GitHub", href: "https://github.com/ryaaan4321" },
     { icon: Linkedin, label: "LinkedIn", href: "https://www.linkedin.com/in/aryan-bhashkar" },
     { icon: Twitter, label: "Twitter", href: "https://x.com/y_aryans" },
+    { icon: SiLeetcode, label: "Leetcode", href: "https://leetcode.com/u/aryan_aryan" },
 ];
 
 export function PortfolioNav() {
     const pathname = usePathname();
     const [isVisible, setIsVisible] = useState(true);
     const [lastScrollY, setLastScrollY] = useState(0);
+
     useEffect(() => {
         const handleScroll = () => {
             const currentScrollY = window.scrollY;
@@ -46,14 +47,11 @@ export function PortfolioNav() {
         window.addEventListener("scroll", handleScroll, { passive: true });
         return () => window.removeEventListener("scroll", handleScroll);
     }, [lastScrollY]);
-    const resolveHref = (item: typeof navItems[0]) => {
-        if (item.isHash && pathname !== "/") {
-            return `/${item.href}`;
-        }
-        return item.href;
-    };
+
     return (
         <>
+
+            {/* TABLET — Bottom Dock */}
             <div
                 className={cn(
                     "fixed bottom-5 left-1/2 -translate-x-1/2 z-50",
@@ -74,13 +72,21 @@ export function PortfolioNav() {
                     )}
                 >
                     {navItems.map((item) => {
-                        const isActive = item.isHash ? pathname === "/" : pathname === item.href;
-                        const href = resolveHref(item);
-                        // Use <a> for hash links when NOT on homepage — forces full page nav
-                        const useAnchor = item.isHash && pathname !== "/";
-
-                        const content = (
-                            <>
+                        const isActive = pathname === item.href;
+                        return (
+                            <Link
+                                key={item.label}
+                                href={item.href}
+                                className={cn(
+                                    "group relative flex items-center justify-center",
+                                    "w-11 h-11 rounded-xl",
+                                    "transition-all duration-300",
+                                    "hover:bg-[#1a1a1a] hover:scale-110",
+                                    "active:scale-95",
+                                    isActive && "bg-[#1a1a1a]"
+                                )}
+                                aria-label={item.label}
+                            >
                                 <item.icon
                                     size={19}
                                     strokeWidth={1.8}
@@ -104,30 +110,12 @@ export function PortfolioNav() {
                                 >
                                     {item.label}
                                 </span>
-                            </>
-                        );
-
-                        const className = cn(
-                            "group relative flex items-center justify-center",
-                            "w-11 h-11 rounded-xl",
-                            "transition-all duration-300",
-                            "hover:bg-[#1a1a1a] hover:scale-110",
-                            "active:scale-95",
-                            isActive && "bg-[#1a1a1a]"
-                        );
-
-                        return useAnchor ? (
-                            <a key={item.label} href={href} className={className} aria-label={item.label}>
-                                {content}
-                            </a>
-                        ) : (
-                            <Link key={item.label} href={href} className={className} aria-label={item.label}>
-                                {content}
                             </Link>
                         );
                     })}
 
                     <div className="w-px h-7 bg-[#222] mx-1" />
+
                     {socialItems.map((item) => (
                         <a
                             key={item.href}
@@ -145,7 +133,6 @@ export function PortfolioNav() {
                         >
                             <item.icon
                                 size={18}
-                                strokeWidth={1.8}
                                 className="text-[#444] group-hover:text-[#aaa] transition-colors duration-200"
                             />
                             <span
@@ -165,6 +152,8 @@ export function PortfolioNav() {
                     ))}
                 </div>
             </div>
+
+            {/* MOBILE — Bottom Dock */}
             <div
                 className={cn(
                     "fixed bottom-4 left-1/2 -translate-x-1/2 z-50",
@@ -185,15 +174,23 @@ export function PortfolioNav() {
                     )}
                 >
                     {navItems.map((item) => {
-                        const isActive = item.isHash ? pathname === "/" : pathname === item.href;
-                        const href = resolveHref(item);
-                        // Use <a> for hash links when NOT on homepage — forces full page nav
-                        const useAnchor = item.isHash && pathname !== "/";
-
-                        const content = (
-                            <>
+                        const isActive = pathname === item.href;
+                        return (
+                            <Link
+                                key={item.label}
+                                href={item.href}
+                                className={cn(
+                                    "group relative flex items-center justify-center",
+                                    "w-9 h-9 rounded-lg",
+                                    "transition-all duration-300",
+                                    "hover:bg-[#1a1a1a] hover:scale-110",
+                                    "active:scale-95",
+                                    isActive && "bg-[#1a1a1a]"
+                                )}
+                                aria-label={item.label}
+                            >
                                 <item.icon
-                                    size={19}
+                                    size={17}
                                     strokeWidth={1.8}
                                     className={cn(
                                         "transition-colors duration-200",
@@ -204,8 +201,8 @@ export function PortfolioNav() {
                                 />
                                 <span
                                     className={cn(
-                                        "absolute -top-10 left-1/2 -translate-x-1/2",
-                                        "px-2.5 py-1 rounded-lg text-[11px] font-medium",
+                                        "absolute -top-9 left-1/2 -translate-x-1/2",
+                                        "px-2 py-0.5 rounded-md text-[10px] font-medium",
                                         "bg-[#1a1a1a] text-[#bbb] border border-[#2a2a2a]",
                                         "opacity-0 group-hover:opacity-100",
                                         "transition-all duration-200",
@@ -215,25 +212,6 @@ export function PortfolioNav() {
                                 >
                                     {item.label}
                                 </span>
-                            </>
-                        );
-
-                        const className = cn(
-                            "group relative flex items-center justify-center",
-                            "w-11 h-11 rounded-xl",
-                            "transition-all duration-300",
-                            "hover:bg-[#1a1a1a] hover:scale-110",
-                            "active:scale-95",
-                            isActive && "bg-[#1a1a1a]"
-                        );
-
-                        return useAnchor ? (
-                            <a key={item.label} href={href} className={className} aria-label={item.label}>
-                                {content}
-                            </a>
-                        ) : (
-                            <Link key={item.label} href={href} className={className} aria-label={item.label}>
-                                {content}
                             </Link>
                         );
                     })}
@@ -257,7 +235,6 @@ export function PortfolioNav() {
                         >
                             <item.icon
                                 size={16}
-                                strokeWidth={1.8}
                                 className="text-[#444] group-hover:text-[#aaa] transition-colors duration-200"
                             />
                             <span

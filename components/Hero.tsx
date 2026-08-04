@@ -37,43 +37,6 @@ export default function Hero() {
               </div>
             </div>
           </div>
-
-          <div className="flex items-center gap-2.5">
-            <a
-              href="https://github.com/ryaaan4321"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2  rounded-lg text-[#A8A8A8] hover:text-[#F2F2F2] hover:border-[#2a2a2a] transition-all"
-              aria-label="GitHub"
-            >
-              <GithubIcon size={14} />
-            </a>
-            <a
-              href="https://www.linkedin.com/in/aryan-bhashkar"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2  rounded-lg text-[#A8A8A8] hover:text-[#F2F2F2] hover:border-[#2a2a2a] transition-all"
-              aria-label="LinkedIn"
-            >
-              <LinkedinIcon size={14} />
-            </a>
-            <a
-              href="https://leetcode.com/u/aryan_aryan/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2  rounded-lg text-[#A8A8A8] hover:text-[#F2F2F2] hover:border-[#2a2a2a] transition-all"
-              aria-label="LeetCode"
-            >
-              <TbBrandLeetcode size={14} />
-            </a>
-            <Link
-              href="/booking"
-              className="p-2  rounded-lg text-[#A8A8A8] hover:text-[#F2F2F2] hover:border-[#2a2a2a] transition-all"
-              aria-label="Book a Call (Cal.com)"
-            >
-              <CalendarIcon size={14} />
-            </Link>
-          </div>
         </div>
 
         <div className="border-t border-[#1f1f1f] pt-6">
