@@ -10,7 +10,7 @@ export async function WakaTimeStats() {
 
   return (
     <div className="w-full">
-      <h3 className="text-base font-medium text-[#F2F2F2] tracking-[-0.15px] mb-6">
+      <h3 className="text-base font-medium text-[#F2F2F2] tracking-[-0.15px] mb-6 uppercase">
         Weekly Coding Stats
       </h3>
 
