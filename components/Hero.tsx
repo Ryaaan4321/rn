@@ -98,11 +98,6 @@ export default function Hero() {
           </div>
         ))}
       </div>
-      <div className="flex flex-wrap gap-2 w-full mt-3">
-        {tags.map((tag) => (
-          <TechTag key={tag} name={tag} showHash />
-        ))}
-      </div>
     </section>
   );
 }

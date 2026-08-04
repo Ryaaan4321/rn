@@ -10,6 +10,7 @@ import { getAllPosts } from "@/lib/mdx";
 import { WakaTimeStats } from "@/components/WakatimeStats";
 import { SparklesIcon } from "lucide-react";
 import Link from "next/link";
+import { SkillsSection } from "@/components/SkillSection";
 export default function Home() {
   const posts = getAllPosts().map((post) => ({
     slug: post.slug,
@@ -44,6 +45,9 @@ export default function Home() {
           </ScrollReveal>
           <ScrollReveal>
             <Projects />
+          </ScrollReveal>
+          <ScrollReveal>
+            <SkillsSection />
           </ScrollReveal>
           <section className="w-full max-w-[640px] px-6 md:px-10 py-16">
             <WakaTimeStats />
