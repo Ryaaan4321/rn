@@ -1,0 +1,145 @@
+---
+title: "Database Sharding and Consistent Hashing"
+date: "2026-08-05"
+tags: ["system-design", "sharding", "consistent-hashing", "databases"]
+description: "Why replication alone doesn't solve everything, how sharding splits your data across machines, and why consistent hashing is the only sane way to reshard without moving your entire dataset."
+---
+
+# Database Sharding and Consistent Hashing
+
+If you've ever changed your GitHub profile picture, you might have gotten a little notification saying your profile will update shortly, or something adjacent to it.
+
+Do you know why? What I can think of is it's because of replication. And do you know what replication is?
+
+Replication is an exact copy of the data from our main DB to other slave DBs (discrimination).
+
+But what's different between them, and why do we have them in the first place, Aryan?
+
+The reason is: when our single DB can't keep up with the frequent reads and writes of the system, we make one master DB and some slave DBs.
+
+The master DB is responsible for handling all the writes to the DB, and with the help of the write-ahead log in Postgres, all those changes are transmitted to the slaves so they can update the details on the respective table's rows accordingly. That's also why it's called log-based replication.
+
+Now you might ask, why Aryan, why don't we just run the same SQL queries directly on the slave DBs too?
+
+Good question! The reason is: if we directly run the exact same SQL queries on our slave DBs too, there are many SQL queries that don't produce the exact same result as they did when run on the master DB. For example:
+
+- `NOW()`, `CURRENT_TIMESTAMP`, `RAND()`, `UUID()`
+- `UPDATE ... LIMIT 5` without `ORDER BY` — which 5 rows get picked can differ based on physical row order/index state, which may differ between master and replica
+- Concurrent transactions can interleave differently on the replica than they did on the master, so the same statements executing in a different order can produce a different final state
+- Re-executing a query means paying the full cost again: parsing, planning, index lookups, lock acquisition — for an `UPDATE` touching a million rows via a full scan, that's a million-row scan on the replica too
+
+---
+
+## Cons of Replication
+
+Suppose you changed something in the primary DB. Now, streaming the changes from the primary to the slave DBs takes time, and immediately reading it back from a replica can mean you don't even see the changes that were just streamed from the primary to the replica yet. This is called **replication lag**.
+
+**Asynchronous replication**: The primary doesn't wait for the replica to confirm it received the write. It responds to the client immediately. Fast writes, but replicas can lag, and if the primary crashes right after a write, that write might be lost before it reached any replica.
+
+**Synchronous replication**: The primary waits until at least one replica confirms it has the data before telling the client "write successful." Zero replication lag for that replica, no data loss risk — but every write is now slower, since you're waiting on a network round-trip to another machine.
+
+The core problem that gets heated in replication: master-slave replication solves read scaling — you can add more replicas to handle more read traffic. But every replica still has a full copy of the entire dataset, and all writes still go through one single primary.
+
+So two problems remain:
+
+1. What if your data grows so large it doesn't fit comfortably on one machine's disk anymore?
+2. What if your write volume is so high that even one primary can't keep up (writes can't be "load balanced" across replicas the way reads can, since replicas don't accept writes)?
+
+**Sharding** is the answer: split your data across multiple independent database servers, where each server holds only a portion of the data, not all of it.
+
+Each individual database server in this setup is called a **shard**. Each shard has its own CPU, memory, and disk, and can handle its own reads and writes independently. So now, instead of one machine bottlenecking on both storage and write throughput, you have N machines sharing that load.
+
+This is horizontal scaling at the database level — the same concept as adding more servers behind a load balancer, but applied to your data layer instead of your application layer.
+
+---
+
+## How Do We Split the Data?
+
+How do you decide which row goes to which shard?
+
+We pick a **shard key** (also called a partition key) — a column in your data that determines which shard a given row lands on. Example: in a `users` table, you might shard by `user_id`.
+
+**Range-based sharding**: You divide data based on ranges of the shard key. Example: `user_id` 1–1,000,000 goes to Shard 1, 1,000,001–2,000,000 goes to Shard 2, and so on.
+
+Pro: simple to understand, and range queries (e.g., "get all users between ID 500 and 600") are efficient since they land on the same shard.
+
+Con: you can easily get uneven distribution — if your newest users (highest IDs) are the most active, one shard gets hammered while older shards sit idle. This is called the **hot shard problem**.
+
+**Hash-based sharding**: You run the shard key through a hash function, then use the result (typically `hash(key) % number_of_shards`) to decide which shard the row goes to. Example: `hash(user_id) % 4` gives you a number 0–3, mapping to 4 shards.
+
+Pro: distributes data much more evenly across shards, since hash functions scatter values pseudo-randomly. No more hot shard problem from sequential IDs.
+
+Con: range queries become painful — "get all users between ID 500 and 600" now means querying every shard and merging results, since consecutive IDs are scattered randomly across different shards.
+
+This exact trade-off (even distribution vs. efficient range queries) is a classic interview discussion point. Your answer should show you understand there's no free lunch — you pick based on your access patterns. If your app mostly does point lookups (get user by ID), hash-based is usually preferred. If range scans matter a lot, range-based (or a hybrid) might make more sense.
+
+Two broad approaches worth knowing for routing to shards:
+
+- **Application-level sharding**: your app code itself decides, based on the shard key, which database connection to use for a given query. This gives full control but adds complexity to your app logic.
+- **Middleware/proxy-based sharding**: a layer sits between your app and the databases (e.g., Vitess, Citus for Postgres) and handles routing queries to the correct shard transparently, so your app mostly writes queries as if it's talking to one database.
+
+---
+
+## The Hard Part: Resharding
+
+This is where sharding gets genuinely painful in practice — what happens when you need to add a 5th shard?
+
+With simple hash sharding (`hash(key) % N`), if N changes from 4 to 5, the formula gives completely different results for almost every existing key. That means almost all your data now needs to move to a different shard — a massive, disruptive, and risky operation on a live production system.
+
+Routing is only half the problem. The other half is: when N changes, how do you avoid moving *everything*? That's what consistent hashing solves.
+
+---
+
+## Consistent Hashing
+
+Go back to the resharding problem. `hash(key) % N` ties every key's location to N. The moment N changes, almost every `key % N` result changes too, so almost every key has to move. For a live system with millions of rows, that's not a resharding operation, that's a full data migration with downtime written all over it.
+
+Consistent hashing fixes this by removing N from the formula entirely.
+
+**The idea: a ring, not a modulo.** Instead of hashing your key and taking a modulo against the number of shards, imagine a circle (a ring) representing hash values from `0` to `2^32 - 1` (or whatever your hash function's range is).
+
+- You hash each **shard/node** (not just the key) and place it at that position on the ring.
+- You hash each **key** and place it at its position on the ring too.
+- To find which shard a key belongs to, you walk clockwise from the key's position until you hit the first node. That node owns the key.
+
+Nothing here depends on how many total shards exist. It only depends on where nodes happen to sit on the ring relative to the key.
+
+**Why this fixes resharding.** Say you add a 5th node. You hash it and place it at some position on the ring. Only the keys that fall between this new node and the previous node (going clockwise) get reassigned to it. Every other key on the ring still maps to the same node it did before, because nothing about their position or the other nodes' positions changed.
+
+Roughly `K/N` keys move (K = total keys, N = number of nodes) instead of nearly all of them. Same logic applies when a node is removed — only the keys it owned get redistributed to the next node clockwise; everyone else is untouched.
+
+**The catch: uneven distribution with few nodes.** If you only have a handful of physical nodes, their positions on the ring (based on hashing the node's ID/IP) can end up clustered unevenly by chance. That means one node could end up owning a disproportionately large arc of the ring, and get hammered with far more keys than the others — basically a hot-shard problem again, just for a different reason.
+
+**The fix: virtual nodes.** Instead of placing each physical node once on the ring, you place it multiple times, at many different hashed positions, each acting as a **virtual node**. A physical node might own 100+ virtual node positions scattered around the ring.
+
+This does two things:
+
+- Smooths out the distribution, since with more points scattered around, the arcs each physical node ends up owning average out to be roughly equal, even with a small number of physical nodes.
+- When a physical node is added or removed, its virtual nodes are also scattered, so the keys that get reassigned are spread thinly across many other nodes instead of dumping the entire load on one neighbor.
+
+Consistent hashing isn't just a system design interview talking point, it's running in production in places like:
+
+- **DynamoDB and Cassandra** use it for partitioning data across nodes.
+- **Discord** uses it for routing across their data stores.
+- **CDNs** use it to consistently route a given resource/user to the same edge cache/server.
+- **Memcached client libraries** use it so that adding/removing a cache node doesn't invalidate your entire cache at once (a cold cache after every scaling event would be brutal).
+
+If asked "how would you reshard without downtime," the answer isn't "we run `hash(key) % N` and migrate everything." It's: use consistent hashing so N can change without remapping the whole keyspace, and use virtual nodes so a small number of physical nodes still gets even distribution. Simple modulo sharding is the naive first answer, consistent hashing is the "I understand why that naive answer breaks in production" answer.
+
+---
+
+## Comparison Table
+
+| Strategy               | Distribution | Range Queries | Resharding Cost           | Good For                                    |
+| ---------------------- | ------------ | -------------- | ------------------------- | -------------------------------------------- |
+| Range-Based Sharding   | Uneven (hot shard risk) | Fast (same shard) | Manual rebalancing needed | Sequential access patterns, time-series data |
+| Hash-Based Sharding    | Even         | Slow (fan-out + merge) | Nearly all keys move on resize | Point lookups, uniform load |
+| Consistent Hashing     | Even (with virtual nodes) | Slow (fan-out + merge) | Only ~K/N keys move | Dynamic clusters, frequent scale up/down |
+
+---
+
+## References
+
+- [ByteByteGo — Consistent Hashing Explained](https://bytebytego.com/guides/consistent-hashing/)
+- [ByteByteGo — A Crash Course in Database Sharding](https://bytebytego.com/guides/a-crash-course-in-database-sharding/)
+- [Arpit Bhayani — Consistent Hashing: What It Is and How to Implement It](https://arpitbhayani.me/blogs/consistent-hashing/)
