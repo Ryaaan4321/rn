@@ -1,0 +1,12 @@
+[
+    {"url":"https://www.mongodb.com/docs/manual/sharding/#std-label-sharding-background"},
+    {"url":"https://www.bmc.com/blogs/mongodb-sharding-explained/"},
+    {"url":"https://www.bmc.com/blogs/mongodb-sharding-explained/"},
+    {"url":"https://levelup.gitconnected.com/complete-guide-to-building-authorization-systems-using-rbac-rebac-and-abac-0a2ce5311d25"},
+    {"url":"https://github.com/animir/node-rate-limiter-flexible/wiki/Fixed-Window-rate-limiting-algorithm-explained"},
+    {"url":"https://datatracker.ietf.org/doc/html/rfc6750#section-2.1"},
+    {"url":"https://discord.com/blog/how-discord-scaled-elixir-to-5-000-000-concurrent-users"},
+    {"url":"https://www.cs.cornell.edu/Projects/ladis2009/papers/lakshman-ladis2009.pdf"},
+    {"url":"https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf"}
+
+]

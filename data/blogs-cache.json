@@ -1,0 +1,74 @@
+[
+  {
+    "url": "https://www.mongodb.com/docs/manual/sharding/#std-label-sharding-background",
+    "title": "Sharding - Database Manual - MongoDB Docs",
+    "description": "Scale MongoDB deployments horizontally. Use sharding to distribute data across multiple machines, supporting large datasets and high throughput operations.",
+    "image": "https://www.mongodb.com/docs/assets/meta_generic.png",
+    "siteName": "mongodb.com",
+    "favicon": "https://www.google.com/s2/favicons?domain=mongodb.com&sz=64"
+  },
+  {
+    "url": "https://www.bmc.com/blogs/mongodb-sharding-explained/",
+    "title": "MongoDB Sharding: Concepts, Examples & Tutorials",
+    "description": "",
+    "image": "https://s7280.pcdn.co/wp-content/uploads/2019/04/mongodb-guide-300x150.jpg.optimal.jpg",
+    "siteName": "BMC Blogs",
+    "favicon": "https://www.google.com/s2/favicons?domain=bmc.com&sz=64"
+  },
+  {
+    "url": "https://www.bmc.com/blogs/mongodb-sharding-explained/",
+    "title": "MongoDB Sharding: Concepts, Examples & Tutorials",
+    "description": "",
+    "image": "https://s7280.pcdn.co/wp-content/uploads/2019/04/mongodb-guide-300x150.jpg.optimal.jpg",
+    "siteName": "BMC Blogs",
+    "favicon": "https://www.google.com/s2/favicons?domain=bmc.com&sz=64"
+  },
+  {
+    "url": "https://levelup.gitconnected.com/complete-guide-to-building-authorization-systems-using-rbac-rebac-and-abac-0a2ce5311d25",
+    "title": "Complete Guide to Building Authorization Systems using RBAC, ReBAC and ABAC",
+    "description": "Learn how to build RBAC, ReBAC, ABAC Authorization models with OpenFGA by building a Github clone",
+    "image": "https://miro.medium.com/v2/resize:fit:1200/1*TFDiNouzU_a8wiyHRiaUMA.jpeg",
+    "siteName": "Medium",
+    "favicon": "https://www.google.com/s2/favicons?domain=levelup.gitconnected.com&sz=64"
+  },
+  {
+    "url": "https://github.com/animir/node-rate-limiter-flexible/wiki/Fixed-Window-rate-limiting-algorithm-explained",
+    "title": "Fixed Window rate limiting algorithm explained",
+    "description": "Atomic and non-atomic counters and rate limiting tools. Limit resource access at any scale. - animir/node-rate-limiter-flexible",
+    "image": "https://repository-images.githubusercontent.com/github-production-repository-image-32fea6/132330004/4735a000-c43c-11ea-93c5-a1240e40f3cd?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20260805%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260805T032615Z&X-Amz-Expires=300&X-Amz-Signature=d8a67b6074332bd86e3f7eec14b7de4703266befce362580dcb1510a51b02303&X-Amz-SignedHeaders=host&jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoiaHR0cHM6Ly9yZXBvc2l0b3J5LWltYWdlcy5naXRodWJ1c2VyY29udGVudC5jb20vIiwia2V5Ijoia2V5MSIsImV4cCI6MTc4NTkwMDY3NSwibmJmIjoxNzg1OTAwMzc1LCJwYXRoIjoicmVwb3NpdG9yeS1pbWFnZXMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIn0.3AhsHMhpU0alGpapya0yTG09yg9He0BnMcwfHsqYHak",
+    "siteName": "GitHub",
+    "favicon": "https://www.google.com/s2/favicons?domain=github.com&sz=64"
+  },
+  {
+    "url": "https://datatracker.ietf.org/doc/html/rfc6750#section-2.1",
+    "title": "RFC 6750: The OAuth 2.0 Authorization Framework: Bearer Token Usage",
+    "description": "This specification describes how to use bearer tokens in HTTP requests to access OAuth 2.0 protected resources. Any party in possession of a bearer token (a \"bearer\") can use it to get access to the associated resources (without demonstrating possession of a cryptographic key). To prevent misuse, bearer tokens need to be protected from disclosure in storage and in transport. [STANDARDS-TRACK]",
+    "image": "https://static.ietf.org/dt/12.69.0/ietf/images/ietf-logo-card.png",
+    "siteName": "IETF Datatracker",
+    "favicon": "https://www.google.com/s2/favicons?domain=datatracker.ietf.org&sz=64"
+  },
+  {
+    "url": "https://discord.com/blog/how-discord-scaled-elixir-to-5-000-000-concurrent-users",
+    "title": "How Discord Scaled Elixir to 5,000,000 Concurrent Users",
+    "description": "",
+    "image": "https://cdn.prod.website-files.com/5f9072399b2640f14d6a2bf4/6124024934aa8718da9fb6fd_1_4YkOfk2dNswnXU0t1rNAvA.png",
+    "siteName": "discord.com",
+    "favicon": "https://www.google.com/s2/favicons?domain=discord.com&sz=64"
+  },
+  {
+    "url": "https://www.cs.cornell.edu/Projects/ladis2009/papers/lakshman-ladis2009.pdf",
+    "title": "cs.cornell.edu",
+    "description": "",
+    "image": null,
+    "siteName": "cs.cornell.edu",
+    "favicon": "https://www.google.com/s2/favicons?domain=cs.cornell.edu&sz=64"
+  },
+  {
+    "url": "https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf",
+    "title": "allthingsdistributed.com",
+    "description": "",
+    "image": null,
+    "siteName": "allthingsdistributed.com",
+    "favicon": "https://www.google.com/s2/favicons?domain=allthingsdistributed.com&sz=64"
+  }
+]
